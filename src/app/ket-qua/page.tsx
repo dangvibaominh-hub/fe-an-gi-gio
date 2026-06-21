@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import {
   DIFFICULTY_ORDER,
   MOCK_RECIPES,
-} from "@/lib/mock-recipes";
+} from "@/lib/mockRecipes";
 
 export const metadata: Metadata = {
   title: "Kết quả công thức",
@@ -24,7 +24,7 @@ export default function RecipeResultsPage() {
     slug: recipe.slug,
     difficulty: recipe.difficulty,
     cookTimeMinutes: recipe.cookTimeMinutes,
-    servings: recipe.servings,
+    servings: recipe.baseServings,
     card: <RecipeCard {...recipe} />,
   }));
 

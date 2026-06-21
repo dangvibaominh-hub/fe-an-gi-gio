@@ -1,4 +1,4 @@
-import type { RecipeDifficulty } from "@/lib/mock-recipes";
+import type { RecipeDifficulty } from "@/lib/mockRecipes";
 
 export interface DifficultyBadgeProps {
   difficulty: RecipeDifficulty;

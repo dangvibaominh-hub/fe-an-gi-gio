@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { BookmarkButton } from "@/components/recipe/BookmarkButton";
 import { DifficultyBadge } from "@/components/recipe/DifficultyBadge";
-import type { Recipe } from "@/lib/mock-recipes";
+import type { Recipe } from "@/lib/mockRecipes";
 
 export type RecipeCardProps = Recipe;
 
@@ -11,8 +11,8 @@ export function RecipeCard({
   cookTimeMinutes,
   difficulty,
   imageAlt,
-  imageSrc,
-  servings,
+  image,
+  baseServings,
   slug,
   title,
 }: RecipeCardProps) {
@@ -26,7 +26,7 @@ export function RecipeCard({
 
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
-          src={imageSrc}
+          src={image}
           alt={imageAlt}
           fill
           sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
@@ -69,7 +69,7 @@ export function RecipeCard({
               <circle cx="12" cy="8" r="3" />
               <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
             </svg>
-            {servings} người
+            {baseServings} người
           </span>
         </div>
       </div>

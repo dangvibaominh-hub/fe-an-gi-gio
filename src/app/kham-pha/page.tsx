@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import {
   MOCK_RECIPES,
   RECIPE_CATEGORIES,
-} from "@/lib/mock-recipes";
+} from "@/lib/mockRecipes";
 
 export const metadata: Metadata = {
   title: "Khám phá công thức",
