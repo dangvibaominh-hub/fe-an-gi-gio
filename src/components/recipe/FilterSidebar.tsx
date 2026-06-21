@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import type { RecipeDifficulty } from "@/lib/mock-recipes";
+import type { RecipeDifficulty } from "@/lib/mockRecipes";
 
 export type TimeFilter = "duoi-30" | "30-60" | "tren-60";
 export type ServingFilter = "1-2" | "3-4" | "5-plus";

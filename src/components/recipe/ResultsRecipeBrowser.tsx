@@ -8,7 +8,7 @@ import {
   type ServingFilter,
   type TimeFilter,
 } from "@/components/recipe/FilterSidebar";
-import type { RecipeDifficulty } from "@/lib/mock-recipes";
+import type { RecipeDifficulty } from "@/lib/mockRecipes";
 
 export interface FilterableRecipe {
   card: ReactNode;
