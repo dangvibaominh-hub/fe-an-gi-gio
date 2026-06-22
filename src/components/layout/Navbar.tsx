@@ -1,7 +1,7 @@
 import Link from "next/link";
 
+import { NavbarAuthControls } from "@/components/layout/NavbarAuthControls";
 import { NavbarLinks } from "@/components/layout/NavbarLinks";
-import { ButtonSecondary } from "@/components/ui/ButtonSecondary";
 
 const NAV_LINKS = [
   { href: "/", label: "Trang chủ" },
@@ -26,9 +26,7 @@ export function Navbar() {
 
         <NavbarLinks links={NAV_LINKS} />
 
-        <ButtonSecondary className="shrink-0 px-4 py-2 text-sm sm:px-6 sm:text-base">
-          Đăng nhập
-        </ButtonSecondary>
+        <NavbarAuthControls />
       </nav>
     </header>
   );
