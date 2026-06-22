@@ -32,8 +32,12 @@ export function RecipeCard({
           sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
           className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
+
         <div className="absolute right-3 top-3 z-20">
-          <BookmarkButton recipeTitle={title} />
+          <BookmarkButton
+            recipeSlug={slug}
+            recipeTitle={title}
+          />
         </div>
       </div>
 
@@ -41,8 +45,10 @@ export function RecipeCard({
         <h2 className="truncate text-xl font-semibold text-charcoal">
           {title}
         </h2>
+
         <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-5 text-sm text-charcoal/75">
           <DifficultyBadge difficulty={difficulty} />
+
           <span className="inline-flex items-center gap-1.5">
             <svg
               aria-hidden="true"
@@ -57,6 +63,7 @@ export function RecipeCard({
             </svg>
             {cookTimeMinutes} phút
           </span>
+
           <span className="inline-flex items-center gap-1.5">
             <svg
               aria-hidden="true"

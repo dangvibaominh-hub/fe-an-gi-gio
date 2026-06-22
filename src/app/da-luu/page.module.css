@@ -1,0 +1,167 @@
+.main {
+  min-height: calc(100vh - 80px);
+  background: #fff8ec;
+}
+
+.content {
+  width: min(1100px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 48px 0 90px;
+}
+
+.heading h1 {
+  margin: 0;
+  color: #32231f;
+  font-size: 45px;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+.heading p {
+  margin: 12px 0 0;
+  color: #725f59;
+  font-size: 15px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 38px 0 26px;
+}
+
+.filterButton {
+  padding: 10px 18px;
+  border: 1px solid #efc7be;
+  border-radius: 999px;
+  background: #fff4ef;
+  color: #3b2a26;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filterActive {
+  border-color: #f7af36;
+  background: #f7af36;
+}
+
+.recipeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card {
+  overflow: hidden;
+  border: 1px solid #efdfd6;
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 5px 15px rgba(81, 55, 38, 0.06);
+}
+
+.imageBox {
+  position: relative;
+  height: 175px;
+  overflow: hidden;
+}
+
+.recipeImage {
+  object-fit: cover;
+}
+
+.bookmarkButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #dc5b50;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+}
+
+.bookmarkButton svg {
+  width: 19px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.cardContent {
+  padding: 12px 13px 16px;
+}
+
+.meta {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.mealTag,
+.timeTag {
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.mealTag {
+  background: #dcecc9;
+  color: #436331;
+}
+
+.timeTag {
+  background: #f8ece7;
+  color: #7b5e56;
+}
+
+.cardContent h2 {
+  margin: 0;
+  color: #c94d42;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.cardContent p {
+  margin: 8px 0 0;
+  color: #725f59;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.emptyState {
+  min-height: 230px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #e4b9af;
+  border-radius: 13px;
+  color: #785f58;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .recipeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .content {
+    width: min(100% - 32px, 1100px);
+    padding-top: 34px;
+  }
+
+  .heading h1 {
+    font-size: 35px;
+  }
+
+  .recipeGrid {
+    grid-template-columns: 1fr;
+  }
+}
