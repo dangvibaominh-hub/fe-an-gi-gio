@@ -1,16 +1,17 @@
 "use client";
 
 import {
-  useEffect,
-  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
 } from "react";
 
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { ModalBase } from "@/components/modals/ModalBase";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
-import { ButtonSecondary } from "@/components/ui/ButtonSecondary";
+import { ApiRequestError } from "@/lib/api/errors";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { getGoogleClientId } from "@/lib/auth/googleOAuth";
 
 type AuthMode = "login" | "register";
 type AuthField = "name" | "email" | "password";
@@ -18,8 +19,8 @@ type AuthErrors = Partial<Record<AuthField, string>>;
 
 export interface AuthModalProps {
   isOpen: boolean;
+  onAuthenticated?: (mode: AuthMode) => void;
   onClose: () => void;
-  onSuccess: (mode: AuthMode) => void;
 }
 
 const INITIAL_FORM_VALUES = {
@@ -29,30 +30,22 @@ const INITIAL_FORM_VALUES = {
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 8;
 
 export function AuthModal({
   isOpen,
+  onAuthenticated,
   onClose,
-  onSuccess,
 }: AuthModalProps) {
+  const { login, register } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [formValues, setFormValues] = useState(INITIAL_FORM_VALUES);
   const [errors, setErrors] = useState<AuthErrors>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const submitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
 
   const headingId = "auth-modal-heading";
-
-  useEffect(
-    () => () => {
-      if (submitTimeoutRef.current) {
-        clearTimeout(submitTimeoutRef.current);
-      }
-    },
-    [],
-  );
+  const hasGoogleSignIn = Boolean(getGoogleClientId());
 
   function updateField(
     field: AuthField,
@@ -68,11 +61,13 @@ export function AuthModal({
       ...currentErrors,
       [field]: undefined,
     }));
+    setFormError(null);
   }
 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
     setErrors({});
+    setFormError(null);
   }
 
   function validateForm() {
@@ -90,8 +85,8 @@ export function AuthModal({
 
     if (!formValues.password) {
       nextErrors.password = "Vui lòng nhập mật khẩu.";
-    } else if (formValues.password.length < 6) {
-      nextErrors.password = "Mật khẩu cần có ít nhất 6 ký tự.";
+    } else if (formValues.password.length < MIN_PASSWORD_LENGTH) {
+      nextErrors.password = `Mật khẩu cần có ít nhất ${MIN_PASSWORD_LENGTH} ký tự.`;
     }
 
     setErrors(nextErrors);
@@ -99,7 +94,7 @@ export function AuthModal({
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!validateForm()) {
@@ -107,30 +102,39 @@ export function AuthModal({
     }
 
     setIsSubmitting(true);
+    setFormError(null);
 
-    // TODO: thay bằng gọi API auth thật.
-    submitTimeoutRef.current = setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      if (mode === "register") {
+        await register(
+          formValues.email.trim(),
+          formValues.password,
+          formValues.name.trim(),
+        );
+      } else {
+        await login(formValues.email.trim(), formValues.password);
+      }
+
       setFormValues(INITIAL_FORM_VALUES);
       setErrors({});
       setMode("login");
-      onSuccess(mode);
-    }, 800);
+      onAuthenticated?.(mode);
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        setFormError(error.message);
+      } else {
+        setFormError("Không thể đăng nhập. Vui lòng thử lại sau.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function closeModal() {
-    if (submitTimeoutRef.current) {
-      clearTimeout(submitTimeoutRef.current);
-      submitTimeoutRef.current = null;
-    }
-
     setIsSubmitting(false);
     setErrors({});
+    setFormError(null);
     onClose();
-  }
-
-  function continueWithGoogle() {
-    // TODO: tích hợp OAuth Google thật.
   }
 
   return (
@@ -213,6 +217,12 @@ export function AuthModal({
             />
           </div>
 
+          {formError ? (
+            <p className="mt-4 text-sm text-terracotta" role="alert">
+              {formError}
+            </p>
+          ) : null}
+
           <ButtonPrimary
             type="submit"
             disabled={isSubmitting}
@@ -222,22 +232,19 @@ export function AuthModal({
           </ButtonPrimary>
         </form>
 
-        <div className="my-6 flex items-center gap-4" aria-hidden="true">
-          <span className="h-px flex-1 bg-terracotta/25" />
-          <span className="text-sm font-medium text-charcoal/60">
-            hoặc
-          </span>
-          <span className="h-px flex-1 bg-terracotta/25" />
-        </div>
+        {hasGoogleSignIn ? (
+          <>
+            <div className="my-6 flex items-center gap-4" aria-hidden="true">
+              <span className="h-px flex-1 bg-terracotta/25" />
+              <span className="text-sm font-medium text-charcoal/60">
+                hoặc
+              </span>
+              <span className="h-px flex-1 bg-terracotta/25" />
+            </div>
 
-        <ButtonSecondary
-          type="button"
-          onClick={continueWithGoogle}
-          className="w-full bg-white"
-        >
-          <GoogleGlyph />
-          Tiếp tục với Google
-        </ButtonSecondary>
+            <GoogleSignInButton disabled={isSubmitting} />
+          </>
+        ) : null}
 
         <button
           type="button"
@@ -337,20 +344,5 @@ function AuthFieldInput({
         </p>
       ) : null}
     </div>
-  );
-}
-
-function GoogleGlyph() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="size-5 fill-none stroke-current"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20 12h-8M20 12a8 8 0 1 1-2.3-5.7M20 12c0 4.4-3.2 8-8 8" />
-    </svg>
   );
 }

@@ -2,11 +2,19 @@
 
 import { useEffect, useState } from "react";
 
+import { BookmarkButton } from "@/components/recipe/BookmarkButton";
 import { IconButton } from "@/components/ui/IconButton";
 import { Toast } from "@/components/ui/Toast";
 
-export function RecipeActions() {
-  const [isSaved, setIsSaved] = useState(false);
+export interface RecipeActionsProps {
+  recipeSlug: string;
+  recipeTitle: string;
+}
+
+export function RecipeActions({
+  recipeSlug,
+  recipeTitle,
+}: RecipeActionsProps) {
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -35,14 +43,10 @@ export function RecipeActions() {
   return (
     <>
       <div className="flex items-center gap-2">
-        <IconButton
-          aria-label={isSaved ? "Bỏ lưu công thức" : "Lưu công thức"}
-          isActive={isSaved}
-          onClick={() => setIsSaved((currentValue) => !currentValue)}
-          className="bg-white/85 shadow-warm backdrop-blur-sm hover:bg-white"
-        >
-          <BookmarkGlyph isFilled={isSaved} />
-        </IconButton>
+        <BookmarkButton
+          recipeSlug={recipeSlug}
+          recipeTitle={recipeTitle}
+        />
 
         <div className="relative">
           <IconButton
@@ -106,21 +110,6 @@ function ShareMenuButton({
     >
       {children}
     </button>
-  );
-}
-
-function BookmarkGlyph({ isFilled }: { isFilled: boolean }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className={`size-5 stroke-current ${isFilled ? "fill-current" : "fill-none"}`}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 3h12v18l-6-4-6 4V3Z" />
-    </svg>
   );
 }
 
