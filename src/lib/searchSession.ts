@@ -133,14 +133,14 @@ export function applyMatchToIngredients<
     return ingredients;
   }
 
-  const matchedNames = new Set(
-    match.matchedIngredients.map((name) =>
+  const missingNames = new Set(
+    match.missingIngredients.map((name) =>
       name.toLocaleLowerCase("vi"),
     ),
   );
 
   return ingredients.map((ingredient) => ({
     ...ingredient,
-    haveIt: matchedNames.has(ingredient.name.toLocaleLowerCase("vi")),
+    haveIt: !missingNames.has(ingredient.name.toLocaleLowerCase("vi")),
   }));
 }
