@@ -22,8 +22,13 @@
 | 2 | `docs/UI_Component.md` | Mỗi component cấu tạo từ gì, có những trạng thái nào, nội dung mẫu ra sao |
 | 3 | `docs/page_structure.md` | Route map, cấu trúc thư mục, từng trang ráp từ những section nào theo thứ tự nào |
 | 4 | `docs/FRONTEND_RULES.md` | Quy tắc viết code: Server/Client Component, styling Tailwind, a11y, performance, naming |
+| 5 | `docs/IMPLEMENTATION_STATUS.md` | Tiến độ FE/BE theo PRD §20 — **đọc trước mọi task tích hợp API** |
+| 6 | `docs/BACKEND_IMPLEMENTATION_STATUS.md` | Mirror tiến độ backend (API đã có gì, phase nào chưa) |
+| 7 | `docs/PHASE_5_BACKEND_STATUS.md` | Chi tiết Phase 5 backend (feedback + personalization) |
 
 > Nếu thư mục `docs/` chưa tồn tại trong repo, tạo và copy 4 file trên vào đó trước khi bắt đầu.
+
+**Backend contract:** OpenAPI tại `../be-an-gi-gio/docs/openapi.yaml` hoặc Swagger production `https://api-production-afd7.up.railway.app/docs/`.
 
 **Quy tắc đọc tài liệu:**
 - Trước khi tạo/sửa 1 trang → đọc lại mục tương ứng trong `page_structure.md` + `design-reference.md`.
@@ -88,10 +93,13 @@ Nếu yêu cầu của người dùng:
 
 ```
 docs/
-├─ design-reference.md          # luật thiết kế chung
-├─ UI_Component.md              # anatomy & trạng thái component
-├─ page_structure.md            # route map + cấu trúc thư mục + bố cục trang
-├─ FRONTEND_RULES.md            # quy tắc viết code
-└─ stitch-design                # UI tham khảo cho agent thực hiện
-AGENT.md                        # file này — điểm vào cho AI agent
+├─ design-reference.md              # luật thiết kế chung
+├─ UI_Component.md                  # anatomy & trạng thái component
+├─ page_structure.md                # route map + cấu trúc thư mục + bố cục trang
+├─ FRONTEND_RULES.md                # quy tắc viết code
+├─ IMPLEMENTATION_STATUS.md         # tiến độ FE/BE — đọc trước task API
+├─ BACKEND_IMPLEMENTATION_STATUS.md # mirror tiến độ backend
+├─ PHASE_5_BACKEND_STATUS.md        # chi tiết Phase 5 backend
+└─ stitch_design/                   # UI tham khảo cho agent thực hiện
+AGENT.md                            # file này — điểm vào cho AI agent
 ```
