@@ -3,9 +3,13 @@ import Link from "next/link";
 
 import { BookmarkButton } from "@/components/recipe/BookmarkButton";
 import { DifficultyBadge } from "@/components/recipe/DifficultyBadge";
+import { RecipeMatchSummary } from "@/components/recipe/RecipeMatchSummary";
 import type { RecipeSummary } from "@/lib/types/recipe";
+import type { RecommendationMatch } from "@/lib/types/recommendation";
 
-export type RecipeCardProps = RecipeSummary;
+export interface RecipeCardProps extends RecipeSummary {
+  match?: RecommendationMatch;
+}
 
 export function RecipeCard({
   cookTimeMinutes,
@@ -13,6 +17,7 @@ export function RecipeCard({
   imageAlt,
   image,
   baseServings,
+  match,
   slug,
   title,
 }: RecipeCardProps) {
@@ -46,7 +51,13 @@ export function RecipeCard({
           {title}
         </h2>
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-5 text-sm text-charcoal/75">
+        {match ? <RecipeMatchSummary match={match} /> : null}
+
+        <div
+          className={`mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-charcoal/75 ${
+            match ? "pt-3" : "pt-5"
+          }`}
+        >
           <DifficultyBadge difficulty={difficulty} />
 
           <span className="inline-flex items-center gap-1.5">
