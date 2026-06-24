@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { DifficultyBadge } from "@/components/recipe/DifficultyBadge";
 import { RecipeActions } from "@/components/recipe/RecipeActions";
-import { RecipeIngredientsPanel } from "@/components/recipe/RecipeIngredientsPanel";
+import { RecipeIngredientsPanelWithSession } from "@/components/recipe/RecipeIngredientsPanelWithSession";
 import { StepList } from "@/components/recipe/StepList";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import { getRecipeBySlug } from "@/lib/api/recipes";
@@ -69,7 +69,8 @@ export default async function RecipeDetailPage({
       </header>
 
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-        <RecipeIngredientsPanel
+        <RecipeIngredientsPanelWithSession
+          recipeSlug={recipe.slug}
           baseServings={recipe.baseServings}
           ingredients={recipe.ingredients}
         />

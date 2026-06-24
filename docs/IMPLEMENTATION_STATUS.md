@@ -7,14 +7,14 @@
 | Repo | Vị trí theo PRD §20 | Ghi chú |
 |------|---------------------|---------|
 | **Backend** (`be-an-gi-gio`) | **Hoàn tất Phase 0–5** | API live trên Railway; Phase 6 (Admin) và Phase 7 (Phụ Bếp) chưa có |
-| **Frontend** (`fe-an-gi-gio`) | **Phase 0 done; Phase 1 catalog E2E done** | API client + catalog pages wired; auth/cooking/feedback chưa |
+| **Frontend** (`fe-an-gi-gio`) | **Phase 0–2 catalog + recommendation done** | API client, catalog E2E, home → `/ket-qua` recommendation flow |
 
 **Mốc nghiệm thu (PRD §24):**
 
 | Mốc | Backend | Frontend |
 |-----|---------|----------|
 | M1 Catalog | Sẵn sàng | **Done** — `/kham-pha`, `/ket-qua`, `/cong-thuc/[slug]` dùng API |
-| M2 Recommendation | Sẵn sàng | Chưa |
+| M2 Recommendation | Sẵn sàng | **Done** — Trang chủ → `POST /recommendations` → `/ket-qua` |
 | M3 Identity | Sẵn sàng (Google OAuth cần env) | Chưa — auth modal mock, bookmark `localStorage` |
 | M4 Cooking | Sẵn sàng | Chưa — thiếu route `/nau`, `/lich-su` |
 | M5 Learning | Sẵn sàng | Chưa — thiếu Feedback Modal, `/ho-so` |
@@ -47,8 +47,12 @@
 
 | Hạng mục | Trạng thái |
 |----------|------------|
-| `/` — `IngredientPillInput` → recommendation | UI có; chưa truyền nguyên liệu sang `/ket-qua` |
-| `POST /api/v1/recommendations` | Chưa tích hợp |
+| `/` — `IngredientPillInput` → recommendation | Done — `HomePageClient` + validation + session restore |
+| Truyền search session sang `/ket-qua` | Done — `?ingredients=` query + `sessionStorage` |
+| `POST /api/v1/recommendations` | Done — `src/lib/api/recommendations.ts` |
+| Hiển thị matched/missing + score | Done — `RecipeMatchSummary` trên `RecipeCard` |
+| Loading/empty/error | Done — `ket-qua/loading.tsx`, `error.tsx`, empty state |
+| Chi tiết: checklist theo match | Done — `RecipeIngredientsPanelWithSession` |
 
 ### Giai đoạn 3 — Auth & saved recipes
 
@@ -99,9 +103,9 @@ Chưa có: Admin APIs, Phụ Bếp chat APIs.
 
 1. ~~**Phase 0:** API client, env, types, error/not-found~~ ✅
 2. ~~**Phase 1:** Catalog E2E~~ ✅
-3. **Phase 2:** Luồng Trang chủ → `POST /recommendations` → `/ket-qua` → **M2**
+3. ~~**Phase 2:** Recommendation flow~~ ✅
 4. **Phase 3:** Auth thật + saved recipes server-side → **M3**
-5. Phase 4–5 sau khi M2–M3 ổn định.
+5. Phase 4–5 sau khi M3 ổn định.
 
 ---
 

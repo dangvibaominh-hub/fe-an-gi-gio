@@ -19,8 +19,10 @@ export interface FilterableRecipe {
 }
 
 export interface ResultsRecipeBrowserProps {
+  contextBanner?: ReactNode;
   emptyState: ReactNode;
   recipes: FilterableRecipe[];
+  sortLabel?: string;
 }
 
 const EMPTY_FILTERS: RecipeFilters = {
@@ -30,8 +32,10 @@ const EMPTY_FILTERS: RecipeFilters = {
 };
 
 export function ResultsRecipeBrowser({
+  contextBanner,
   emptyState,
   recipes,
+  sortLabel = "Dễ đến Khó",
 }: ResultsRecipeBrowserProps) {
   const [filters, setFilters] = useState<RecipeFilters>(EMPTY_FILTERS);
 
@@ -78,6 +82,8 @@ export function ResultsRecipeBrowser({
       </div>
 
       <section aria-labelledby="results-heading">
+        {contextBanner}
+
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <h1
             id="results-heading"
@@ -86,7 +92,8 @@ export function ResultsRecipeBrowser({
             Kết quả công thức
           </h1>
           <p className="text-sm text-charcoal/65 sm:text-base">
-            Sắp xếp: <strong className="text-charcoal">Dễ đến Khó</strong>
+            Sắp xếp:{" "}
+            <strong className="text-charcoal">{sortLabel}</strong>
           </p>
         </div>
 

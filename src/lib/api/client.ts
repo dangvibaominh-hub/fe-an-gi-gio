@@ -48,6 +48,41 @@ export async function apiGet<T>(
   return payload as ApiSuccessResponse<T>;
 }
 
+export async function apiPost<T, B>(
+  path: string,
+  body: B,
+): Promise<ApiSuccessResponse<T>> {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+    body: JSON.stringify(body),
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+  const payload: unknown = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw createApiRequestError(response.status, payload);
+  }
+
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    (payload as ApiSuccessResponse<T>).success !== true
+  ) {
+    throw new ApiRequestError(
+      "Phản hồi API không hợp lệ.",
+      response.status,
+      "INVALID_API_RESPONSE",
+      payload,
+    );
+  }
+
+  return payload as ApiSuccessResponse<T>;
+}
+
 function createApiRequestError(
   status: number,
   payload: unknown,
