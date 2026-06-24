@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { DifficultyBadge } from "@/components/recipe/DifficultyBadge";
 import { RecipeActions } from "@/components/recipe/RecipeActions";
 import { RecipeIngredientsPanelWithSession } from "@/components/recipe/RecipeIngredientsPanelWithSession";
+import { StartCookingButton } from "@/components/recipe/StartCookingButton";
 import { StepList } from "@/components/recipe/StepList";
-import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import { getRecipeBySlug } from "@/lib/api/recipes";
 
 interface RecipeDetailPageProps {
@@ -63,7 +63,10 @@ export default async function RecipeDetailPage({
                 </span>
               </div>
             </div>
-            <RecipeActions />
+            <RecipeActions
+              recipeSlug={recipe.slug}
+              recipeTitle={recipe.title}
+            />
           </div>
         </div>
       </header>
@@ -76,12 +79,7 @@ export default async function RecipeDetailPage({
         />
 
         <div>
-          <ButtonPrimary
-            href={`/cong-thuc/${recipe.slug}/nau`}
-            className="mb-5 w-full"
-          >
-            Bắt đầu nấu
-          </ButtonPrimary>
+          <StartCookingButton recipeSlug={recipe.slug} />
           <StepList
             steps={recipe.steps}
             cookingTerms={recipe.cookingTerms}
