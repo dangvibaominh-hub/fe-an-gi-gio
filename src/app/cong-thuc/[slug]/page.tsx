@@ -7,30 +7,21 @@ import { RecipeActions } from "@/components/recipe/RecipeActions";
 import { RecipeIngredientsPanel } from "@/components/recipe/RecipeIngredientsPanel";
 import { StepList } from "@/components/recipe/StepList";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
-import {
-  getRecipeBySlug,
-  MOCK_RECIPES,
-} from "@/lib/mockRecipes";
+import { getRecipeBySlug } from "@/lib/api/recipes";
 
 interface RecipeDetailPageProps {
   params: Promise<{ slug: string }>;
-}
-
-export function generateStaticParams() {
-  return MOCK_RECIPES.map((recipe) => ({ slug: recipe.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: RecipeDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const recipe = getRecipeBySlug(slug);
+  const recipe = await getRecipeBySlug(slug);
 
   return {
     title: recipe?.title ?? "Không tìm thấy công thức",
-    description: recipe
-      ? `Hướng dẫn chi tiết món ${recipe.title}.`
-      : undefined,
+    description: recipe?.description,
   };
 }
 
@@ -38,7 +29,7 @@ export default async function RecipeDetailPage({
   params,
 }: RecipeDetailPageProps) {
   const { slug } = await params;
-  const recipe = getRecipeBySlug(slug);
+  const recipe = await getRecipeBySlug(slug);
 
   if (!recipe) {
     notFound();

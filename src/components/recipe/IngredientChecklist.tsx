@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { RecipeIngredient } from "@/lib/mockRecipes";
+import type { RecipeIngredient } from "@/lib/types/recipe";
 
 export interface IngredientChecklistProps {
   baseServings: number;

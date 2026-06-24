@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { IngredientChecklist } from "@/components/recipe/IngredientChecklist";
 import { ServingStepper } from "@/components/recipe/ServingStepper";
-import type { RecipeIngredient } from "@/lib/mockRecipes";
+import type { RecipeIngredient } from "@/lib/types/recipe";
 
 export interface RecipeIngredientsPanelProps {
   baseServings: number;

@@ -3,29 +3,25 @@ import type { Metadata } from "next";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { ResultsRecipeBrowser } from "@/components/recipe/ResultsRecipeBrowser";
 import { EmptyState } from "@/components/ui/EmptyState";
-import {
-  DIFFICULTY_ORDER,
-  MOCK_RECIPES,
-} from "@/lib/mockRecipes";
+import { listRecipes } from "@/lib/api/recipes";
+import { DEFAULT_RECIPE_LIST_LIMIT } from "@/lib/constants/recipe";
 
 export const metadata: Metadata = {
   title: "Kết quả công thức",
 };
 
-export default function RecipeResultsPage() {
-  const sortedRecipes = [...MOCK_RECIPES].sort(
-    (firstRecipe, secondRecipe) =>
-      DIFFICULTY_ORDER[firstRecipe.difficulty] -
-        DIFFICULTY_ORDER[secondRecipe.difficulty] ||
-      firstRecipe.cookTimeMinutes - secondRecipe.cookTimeMinutes,
-  );
+export default async function RecipeResultsPage() {
+  const { items: recipes } = await listRecipes({
+    limit: DEFAULT_RECIPE_LIST_LIMIT,
+    sort: "difficulty-asc",
+  });
 
-  const filterableRecipes = sortedRecipes.map((recipe) => ({
+  const filterableRecipes = recipes.map((recipe) => ({
     slug: recipe.slug,
     difficulty: recipe.difficulty,
     cookTimeMinutes: recipe.cookTimeMinutes,
     servings: recipe.baseServings,
-    card: <RecipeCard {...recipe} />,
+    card: <RecipeCard key={recipe.slug} {...recipe} />,
   }));
 
   return (
