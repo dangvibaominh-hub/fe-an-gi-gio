@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 
-import type { RecipeCategory } from "@/lib/mockRecipes";
+import type { RecipeCategory } from "@/lib/constants/recipe";
 
 export interface CategoryPanel {
   category: RecipeCategory;

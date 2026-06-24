@@ -3,9 +3,9 @@ import Link from "next/link";
 
 import { BookmarkButton } from "@/components/recipe/BookmarkButton";
 import { DifficultyBadge } from "@/components/recipe/DifficultyBadge";
-import type { Recipe } from "@/lib/mockRecipes";
+import type { RecipeSummary } from "@/lib/types/recipe";
 
-export type RecipeCardProps = Recipe;
+export type RecipeCardProps = RecipeSummary;
 
 export function RecipeCard({
   cookTimeMinutes,
