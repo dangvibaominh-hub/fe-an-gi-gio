@@ -5,8 +5,10 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import type { RecipeCategory } from "@/lib/constants/recipe";
 
+const ALL_CATEGORIES_TAB = "Tất cả" as const;
+
 export interface CategoryPanel {
-  category: RecipeCategory;
+  category: RecipeCategory | typeof ALL_CATEGORIES_TAB;
   content: ReactNode;
 }
 
@@ -19,33 +21,52 @@ export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
   const router = useRouter();
 
   // Find the category that matches defaultCategory, or fallback to first category
-  const getInitialCategory = (): RecipeCategory => {
-    if (defaultCategory) {
-      const matched = panels.find((panel) => panel.category === defaultCategory);
-      if (matched) return matched.category;
+  const getInitialCategory = (): CategoryPanel["category"] => {
+    if (!defaultCategory) {
+      return ALL_CATEGORIES_TAB;
     }
-    return panels[0]?.category ?? "Món xào";
+
+    const matched = panels.find((panel) => panel.category === defaultCategory);
+    if (matched) {
+      return matched.category;
+    }
+
+    return ALL_CATEGORIES_TAB;
   };
 
-  const [activeCategory, setActiveCategory] = useState<RecipeCategory>(getInitialCategory);
+  const [activeCategory, setActiveCategory] = useState<CategoryPanel["category"]>(
+    getInitialCategory,
+  );
 
   // Sync activeCategory state if defaultCategory changes (e.g. browser navigation or clicking a link)
   useEffect(() => {
-    if (defaultCategory) {
-      const matched = panels.find((panel) => panel.category === defaultCategory);
-      if (matched && matched.category !== activeCategory) {
-        setActiveCategory(matched.category);
+    if (!defaultCategory) {
+      if (activeCategory !== ALL_CATEGORIES_TAB) {
+        setActiveCategory(ALL_CATEGORIES_TAB);
       }
+      return;
     }
-  }, [defaultCategory, panels, activeCategory]);
+
+    const matched = panels.find((panel) => panel.category === defaultCategory);
+    if (matched && matched.category !== activeCategory) {
+      setActiveCategory(matched.category);
+    }
+  }, [activeCategory, defaultCategory, panels]);
 
   const activePanel = panels.find(
     (panel) => panel.category === activeCategory,
   );
 
-  const handleTabChange = (category: RecipeCategory) => {
+  const handleTabChange = (category: CategoryPanel["category"]) => {
     setActiveCategory(category);
-    router.replace(`/kham-pha?category=${encodeURIComponent(category)}`, { scroll: false });
+    if (category === ALL_CATEGORIES_TAB) {
+      router.replace("/kham-pha", { scroll: false });
+      return;
+    }
+
+    router.replace(`/kham-pha?category=${encodeURIComponent(category)}`, {
+      scroll: false,
+    });
   };
 
   return (
@@ -81,7 +102,7 @@ export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
 
       <div
         role="tabpanel"
-        className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4"
       >
         {activePanel?.content}
       </div>

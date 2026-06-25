@@ -22,14 +22,14 @@ export function RecipeCard({
   title,
 }: RecipeCardProps) {
   return (
-    <article className="group relative h-full overflow-hidden rounded-2xl bg-white shadow-warm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article className="group relative h-full overflow-visible rounded-2xl bg-white shadow-warm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
       <Link
         href={`/cong-thuc/${slug}`}
         aria-label={`Xem công thức ${title}`}
         className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-terracotta"
       />
 
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl">
         <Image
           src={image}
           alt={imageAlt}
@@ -37,10 +37,6 @@ export function RecipeCard({
           sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
           className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
-
-        <div className="absolute left-3 top-3 z-20">
-          <DifficultyBadge difficulty={difficulty} variant="overlay" />
-        </div>
 
         <div className="absolute right-3 top-3 z-20">
           <BookmarkButton
@@ -50,47 +46,65 @@ export function RecipeCard({
         </div>
       </div>
 
+      <div className="absolute -left-6 -top-5 z-30">
+        <DifficultyBadge
+          difficulty={difficulty}
+          variant="overlay"
+          mode="icon"
+        />
+      </div>
+
       <div className="flex min-h-40 flex-col p-5">
-        <h2 className="truncate text-xl font-semibold text-charcoal">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.32em] text-denim/70">
+          Công thức món
+        </p>
+
+        <h2 className="truncate text-xl font-semibold text-charcoal uppercase">
           {title}
         </h2>
 
         {match ? <RecipeMatchSummary match={match} /> : null}
 
         <div
-          className={`mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-charcoal/75 ${
+          className={`mt-auto flex items-center justify-between gap-2 text-xs text-charcoal/75 ${
             match ? "pt-3" : "pt-5"
           }`}
         >
-          <span className="inline-flex items-center gap-1.5">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="size-4 fill-none stroke-current"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
-            {cookTimeMinutes} phút
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-denim/10 px-2.5 font-semibold leading-none text-denim">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="size-3.5 fill-none stroke-current"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+              {cookTimeMinutes} p
+            </span>
 
-          <span className="inline-flex items-center gap-1.5">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="size-4 fill-none stroke-current"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="8" r="3" />
-              <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-            </svg>
-            {baseServings} người
-          </span>
+            <span className="inline-flex h-8 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-denim/10 px-2.5 font-semibold leading-none text-denim">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="size-3.5 fill-none stroke-current"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="8" r="3" />
+                <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+              </svg>
+              {baseServings}
+            </span>
+          </div>
+
+          <div className="flex min-w-0 justify-end">
+            <DifficultyBadge difficulty={difficulty} mode="text" />
+          </div>
         </div>
       </div>
     </article>

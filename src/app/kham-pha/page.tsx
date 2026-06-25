@@ -26,26 +26,40 @@ export default async function ExploreRecipesPage({
     listCategories(),
   ]);
 
-  const panels = categories.map((category) => {
-    const categoryRecipes = recipes.filter(
-      (recipe) => recipe.category === category.name,
-    );
-
-    return {
-      category: category.name,
+  const panels = [
+    {
+      category: "Tất cả",
       content:
-        categoryRecipes.length > 0 ? (
-          categoryRecipes.map((recipe) => (
-            <RecipeCard key={recipe.slug} {...recipe} />
-          ))
+        recipes.length > 0 ? (
+          recipes.map((recipe) => <RecipeCard key={recipe.slug} {...recipe} />)
         ) : (
           <EmptyState
             title="Chưa có công thức phù hợp"
-            description={`Danh mục ${category.name} đang được Phụ Bếp bổ sung. Bạn thử chọn một danh mục khác nhé.`}
+            description="Phụ Bếp đang bổ sung thêm công thức. Bạn quay lại sau nhé."
           />
         ),
-    };
-  });
+    },
+    ...categories.map((category) => {
+      const categoryRecipes = recipes.filter(
+        (recipe) => recipe.category === category.name,
+      );
+
+      return {
+        category: category.name,
+        content:
+          categoryRecipes.length > 0 ? (
+            categoryRecipes.map((recipe) => (
+              <RecipeCard key={recipe.slug} {...recipe} />
+            ))
+          ) : (
+            <EmptyState
+              title="Chưa có công thức phù hợp"
+              description={`Danh mục ${category.name} đang được Phụ Bếp bổ sung. Bạn thử chọn một danh mục khác nhé.`}
+            />
+          ),
+      };
+    }),
+  ] as const;
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">

@@ -111,7 +111,7 @@ export function SavedRecipesView() {
               description="Hãy vào Khám phá công thức và bấm biểu tượng bookmark để lưu món bạn thích."
             />
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
               {filteredRecipes.map((recipe) => (
                 <RecipeCard key={recipe.slug} {...recipe} />
               ))}
