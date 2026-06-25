@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { getCookingHistory } from "@/lib/api/cookingSessions";
 import { ApiRequestError } from "@/lib/api/errors";
 import { FEEDBACK_ISSUE_OPTIONS } from "@/lib/constants/feedback";
+import { normalizeFeedbackIssues } from "@/lib/cooking/normalize";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import type {
   CookingHistorySort,
@@ -184,6 +185,7 @@ function HistoryTimelineItem({ session }: { session: CookingSession }) {
   const completedDate = session.completedAt
     ? formatHistoryDate(session.completedAt)
     : formatHistoryDate(session.startedAt);
+  const feedbackIssues = normalizeFeedbackIssues(session.feedback?.issues);
 
   return (
     <li className="relative">
@@ -224,9 +226,9 @@ function HistoryTimelineItem({ session }: { session: CookingSession }) {
               ) : null}
             </div>
 
-            {session.feedback?.issues.length ? (
+            {feedbackIssues.length > 0 ? (
               <div className="mt-4 flex flex-wrap gap-2">
-                {session.feedback.issues.map((issue) => (
+                {feedbackIssues.map((issue) => (
                   <span
                     key={issue}
                     className="rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta"

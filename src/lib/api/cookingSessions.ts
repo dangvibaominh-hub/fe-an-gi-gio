@@ -2,6 +2,7 @@ import {
   authorizedPaginatedRequest,
   authorizedRequest,
 } from "@/lib/auth/authorizedRequest";
+import { normalizeCookingSession } from "@/lib/cooking/normalize";
 import type { PaginationMeta } from "@/lib/types/api";
 import type {
   CookingHistorySort,
@@ -18,31 +19,37 @@ interface CookingHistoryResult {
 export async function startCookingSession(
   request: StartCookingSessionRequest,
 ): Promise<CookingSession> {
-  return authorizedRequest<CookingSession>({
+  const session = await authorizedRequest<CookingSession>({
     body: request,
     method: "POST",
     path: "/api/v1/cooking-sessions",
   });
+
+  return normalizeCookingSession(session);
 }
 
 export async function updateCookingSession(
   sessionId: string,
   request: UpdateCookingSessionRequest,
 ): Promise<CookingSession> {
-  return authorizedRequest<CookingSession>({
+  const session = await authorizedRequest<CookingSession>({
     body: request,
     method: "PATCH",
     path: `/api/v1/cooking-sessions/${encodeURIComponent(sessionId)}`,
   });
+
+  return normalizeCookingSession(session);
 }
 
 export async function completeCookingSession(
   sessionId: string,
 ): Promise<CookingSession> {
-  return authorizedRequest<CookingSession>({
+  const session = await authorizedRequest<CookingSession>({
     method: "POST",
     path: `/api/v1/cooking-sessions/${encodeURIComponent(sessionId)}/complete`,
   });
+
+  return normalizeCookingSession(session);
 }
 
 export async function getCookingHistory(options?: {
@@ -74,5 +81,5 @@ export async function getCookingHistory(options?: {
     path,
   });
 
-  return { items: data, meta };
+  return { items: data.map(normalizeCookingSession), meta };
 }
