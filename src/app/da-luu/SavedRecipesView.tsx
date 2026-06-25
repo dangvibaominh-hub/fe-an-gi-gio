@@ -98,13 +98,11 @@ export function SavedRecipesView() {
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveFilter(filter)}
-                className={`shrink-0 rounded-full border border-terracotta/20 px-5 py-2.5 text-sm font-semibold transition sm:px-6 sm:text-base ${
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
-                } ${
-                  isActive
+                className={`shrink-0 rounded-full border border-terracotta/20 px-5 py-2.5 text-sm font-semibold transition sm:px-6 sm:text-base ${"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+                  } ${isActive
                     ? "bg-mustard text-charcoal shadow-warm"
                     : "bg-terracotta/10 text-charcoal hover:bg-terracotta/15"
-                }`}
+                  }`}
               >
                 {filter}
               </button>
