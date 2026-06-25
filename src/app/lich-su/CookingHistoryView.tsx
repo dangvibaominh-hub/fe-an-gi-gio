@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { getCookingHistory } from "@/lib/api/cookingSessions";
 import { ApiRequestError } from "@/lib/api/errors";
 import { FEEDBACK_ISSUE_OPTIONS } from "@/lib/constants/feedback";
-import { normalizeFeedbackIssues } from "@/lib/cooking/normalize";
+import { normalizeCookingSession, normalizeFeedbackIssues } from "@/lib/cooking/normalize";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import type {
   CookingHistorySort,
@@ -58,7 +58,7 @@ export function CookingHistoryView() {
         });
 
         if (!cancelled) {
-          setSessions(items);
+          setSessions(items.map((session) => normalizeCookingSession(session)));
         }
       } catch (error) {
         if (!cancelled) {

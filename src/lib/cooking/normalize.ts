@@ -60,6 +60,37 @@ export function normalizeFeedbackIssues(value: unknown): FeedbackIssue[] {
     }
   }
 
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const values = Object.values(record);
+
+    if (values.every((entry) => typeof entry === "string")) {
+      return normalizeFeedbackIssues(values);
+    }
+
+    const fromCounts = Object.entries(record)
+      .filter(
+        ([key, count]) =>
+          VALID_FEEDBACK_ISSUES.has(key as FeedbackIssue) &&
+          typeof count === "number" &&
+          count > 0,
+      )
+      .map(([key]) => key as FeedbackIssue);
+
+    if (fromCounts.length > 0) {
+      return fromCounts;
+    }
+
+    const fromKeys = Object.keys(record).filter(
+      (key): key is FeedbackIssue =>
+        VALID_FEEDBACK_ISSUES.has(key as FeedbackIssue),
+    );
+
+    if (fromKeys.length > 0) {
+      return fromKeys;
+    }
+  }
+
   return [];
 }
 
