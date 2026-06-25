@@ -52,7 +52,9 @@ export function BookmarkButton({
     }
 
     requireAuth(() => {
+      const optimisticSavedState = !isSaved;
       setIsPending(true);
+      setIsSaved(optimisticSavedState);
 
       void toggleSavedRecipe(recipeSlug)
         .then((nextSavedState) => {
