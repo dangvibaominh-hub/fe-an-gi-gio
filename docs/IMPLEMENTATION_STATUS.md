@@ -7,7 +7,7 @@
 | Repo | Vị trí theo PRD §20 | Ghi chú |
 |------|---------------------|---------|
 | **Backend** (`be-an-gi-gio`) | **Hoàn tất Phase 0–5** | API live trên Railway; Phase 6 (Admin) và Phase 7 (Phụ Bếp) chưa có |
-| **Frontend** (`fe-an-gi-gio`) | **Phase 0–2 catalog + recommendation done** | API client, catalog E2E, home → `/ket-qua` recommendation flow |
+| **Frontend** (`fe-an-gi-gio`) | **Phase 0–5 profile + personalization done** | `/ho-so`, InsightCard, confidence bar |
 
 **Mốc nghiệm thu (PRD §24):**
 
@@ -15,9 +15,9 @@
 |-----|---------|----------|
 | M1 Catalog | Sẵn sàng | **Done** — `/kham-pha`, `/ket-qua`, `/cong-thuc/[slug]` dùng API |
 | M2 Recommendation | Sẵn sàng | **Done** — Trang chủ → `POST /recommendations` → `/ket-qua` |
-| M3 Identity | Sẵn sàng (Google OAuth cần env) | Chưa — auth modal mock, bookmark `localStorage` |
-| M4 Cooking | Sẵn sàng | Chưa — thiếu route `/nau`, `/lich-su` |
-| M5 Learning | Sẵn sàng | Chưa — thiếu Feedback Modal, `/ho-so` |
+| M3 Identity | Sẵn sàng (Google OAuth cần env) | **Done** — JWT auth, server bookmarks, auth gates |
+| M4 Cooking | Sẵn sàng | **Done** — `/cong-thuc/[slug]/nau`, `/lich-su`, session API |
+| M5 Learning | Sẵn sàng | **Done** — `/ho-so`, personalization tab, InsightCard |
 | M6 Administration | Chưa | Chưa |
 | M7 Assistant | Chưa | Chưa |
 
@@ -58,25 +58,30 @@
 
 | Hạng mục | Trạng thái |
 |----------|------------|
-| `AuthModal` | UI + validation; submit mock |
-| Session / JWT | Chưa |
-| Bookmark / `/da-luu` | `localStorage` + catalog API (saved slugs lọc từ API) |
+| `AuthModal` | Done — register/login API; mật khẩu tối thiểu 8 ký tự |
+| Session / JWT | Done — `AuthProvider`, token refresh, `localStorage` tokens |
+| Google OAuth | Done khi có `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
+| Bookmark / `/da-luu` | Done — `GET/POST/DELETE /me/saved-recipes`; auth gate cho guest |
+| Auth gate | Done — bookmark, "Bắt đầu nấu" mở login modal |
 
 ### Giai đoạn 4 — Cooking & history
 
 | Hạng mục | Trạng thái |
 |----------|------------|
-| `/cong-thuc/[slug]/nau` | Chưa có route |
-| `/lich-su` | Chưa có route (Navbar đã link) |
-| Cooking components | Chưa có |
+| `/cong-thuc/[slug]/nau` | Done — full-screen, no navbar, progress + timer |
+| Cooking session API | Done — start/resume, PATCH step, complete |
+| `FeedbackModal` | Done — rating + issues + note → home toast |
+| `/lich-su` | Done — timeline, sort, auth guard |
+| Auth gate | Done — cooking mode yêu cầu đăng nhập |
 
 ### Giai đoạn 5 — Feedback & personalization
 
 | Hạng mục | Trạng thái |
 |----------|------------|
-| `FeedbackModal` | Chưa |
-| `/ho-so` | Chưa |
-| `InsightCard` | Chưa |
+| `FeedbackModal` | Done (Phase 4 cooking flow) |
+| `/ho-so` | Done — sub-nav: Thông tin / Cá nhân hóa / Cài đặt |
+| `InsightCard` + confidence bar | Done — `GET /me/personalization`, 2–3 insights |
+| Chỉnh sửa hồ sơ | Done — `PATCH /api/v1/me` (displayName) |
 
 ### Giai đoạn 6–8
 
@@ -104,8 +109,10 @@ Chưa có: Admin APIs, Phụ Bếp chat APIs.
 1. ~~**Phase 0:** API client, env, types, error/not-found~~ ✅
 2. ~~**Phase 1:** Catalog E2E~~ ✅
 3. ~~**Phase 2:** Recommendation flow~~ ✅
-4. **Phase 3:** Auth thật + saved recipes server-side → **M3**
-5. Phase 4–5 sau khi M3 ổn định.
+4. ~~**Phase 3:** Auth thật + saved recipes server-side → **M3**~~ ✅
+5. ~~**Phase 4:** Cooking mode + history → **M4**~~ ✅
+6. ~~**Phase 5:** `/ho-so` + personalization → **M5**~~ ✅
+7. **Phase 6+** khi backend Admin sẵn sàng.
 
 ---
 
