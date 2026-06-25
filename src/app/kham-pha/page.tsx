@@ -63,8 +63,18 @@ export default async function ExploreRecipesPage({
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-      <h1 className="sr-only">Khám phá công thức</h1>
-      <CategoryTabs panels={panels} defaultCategory={defaultCategory} />
+      <div className="max-w-4xl">
+        <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
+          Món nên thử
+        </h1>
+        <p className="mt-3 text-sm text-charcoal/70 sm:text-base">
+          Gợi ý những món phù hợp để bạn đổi vị mỗi ngày, từ dễ đến nâng cao.
+        </p>
+      </div>
+      <h2 className="sr-only">Khám phá công thức</h2>
+      <div className="mt-9">
+        <CategoryTabs panels={panels} defaultCategory={defaultCategory} />
+      </div>
     </div>
   );
 }

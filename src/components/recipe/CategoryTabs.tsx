@@ -12,7 +12,7 @@ export interface CategoryPanel {
 }
 
 export interface CategoryTabsProps {
-  panels: CategoryPanel[];
+  panels: readonly CategoryPanel[];
   defaultCategory?: string;
 }
 
