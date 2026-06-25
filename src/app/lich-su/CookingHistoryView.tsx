@@ -226,18 +226,27 @@ function HistoryTimelineItem({ session }: { session: CookingSession }) {
               ) : null}
             </div>
 
-            {feedbackIssues.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {feedbackIssues.map((issue) => (
-                  <span
-                    key={issue}
-                    className="rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta"
-                  >
-                    {ISSUE_LABELS[issue]}
-                  </span>
-                ))}
-              </div>
-            ) : null}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {feedbackIssues.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {feedbackIssues.map((issue) => (
+                    <span
+                      key={issue}
+                      className="rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta"
+                    >
+                      {ISSUE_LABELS[issue]}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <ButtonPrimary
+                href={`/cong-thuc/${session.recipe.slug}/nau`}
+                className="ml-auto shrink-0 px-5 py-2.5 text-sm"
+              >
+                Bắt đầu nấu
+              </ButtonPrimary>
+            </div>
 
             {session.feedback?.note ? (
               <p className="mt-4 text-sm leading-6 text-charcoal/75">

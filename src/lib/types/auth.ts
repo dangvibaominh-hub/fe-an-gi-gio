@@ -36,3 +36,7 @@ export interface RegisterRequest {
 export interface GoogleLoginRequest {
   idToken: string;
 }
+
+export interface UpdateProfileRequest {
+  displayName: string;
+}

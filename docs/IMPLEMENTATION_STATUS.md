@@ -7,7 +7,7 @@
 | Repo | Vị trí theo PRD §20 | Ghi chú |
 |------|---------------------|---------|
 | **Backend** (`be-an-gi-gio`) | **Hoàn tất Phase 0–5** | API live trên Railway; Phase 6 (Admin) và Phase 7 (Phụ Bếp) chưa có |
-| **Frontend** (`fe-an-gi-gio`) | **Phase 0–4 cooking + history done** | Cooking mode, session sync, feedback, `/lich-su` |
+| **Frontend** (`fe-an-gi-gio`) | **Phase 0–5 profile + personalization done** | `/ho-so`, InsightCard, confidence bar |
 
 **Mốc nghiệm thu (PRD §24):**
 
@@ -17,7 +17,7 @@
 | M2 Recommendation | Sẵn sàng | **Done** — Trang chủ → `POST /recommendations` → `/ket-qua` |
 | M3 Identity | Sẵn sàng (Google OAuth cần env) | **Done** — JWT auth, server bookmarks, auth gates |
 | M4 Cooking | Sẵn sàng | **Done** — `/cong-thuc/[slug]/nau`, `/lich-su`, session API |
-| M5 Learning | Sẵn sàng | Chưa — thiếu Feedback Modal, `/ho-so` |
+| M5 Learning | Sẵn sàng | **Done** — `/ho-so`, personalization tab, InsightCard |
 | M6 Administration | Chưa | Chưa |
 | M7 Assistant | Chưa | Chưa |
 
@@ -78,9 +78,10 @@
 
 | Hạng mục | Trạng thái |
 |----------|------------|
-| `FeedbackModal` | Done (trong Phase 4 cooking flow) |
-| `/ho-so` | Chưa |
-| `InsightCard` | Chưa |
+| `FeedbackModal` | Done (Phase 4 cooking flow) |
+| `/ho-so` | Done — sub-nav: Thông tin / Cá nhân hóa / Cài đặt |
+| `InsightCard` + confidence bar | Done — `GET /me/personalization`, 2–3 insights |
+| Chỉnh sửa hồ sơ | Done — `PATCH /api/v1/me` (displayName) |
 
 ### Giai đoạn 6–8
 
@@ -110,7 +111,8 @@ Chưa có: Admin APIs, Phụ Bếp chat APIs.
 3. ~~**Phase 2:** Recommendation flow~~ ✅
 4. ~~**Phase 3:** Auth thật + saved recipes server-side → **M3**~~ ✅
 5. ~~**Phase 4:** Cooking mode + history → **M4**~~ ✅
-6. **Phase 5:** `/ho-so` + personalization → **M5**
+6. ~~**Phase 5:** `/ho-so` + personalization → **M5**~~ ✅
+7. **Phase 6+** khi backend Admin sẵn sàng.
 
 ---
 
