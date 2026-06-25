@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CategoryCard } from "@/components/home/CategoryCard";
 import { IngredientPillInput } from "@/components/home/IngredientPillInput";
@@ -39,6 +39,16 @@ const CATEGORIES = [
     imageSrc: "/images/categories/mon-hap.png",
     imageAlt: "Xửng bánh bao hấp nóng",
   },
+  {
+    title: "Món chay",
+    imageSrc: "/images/categories/mon-chay.png",
+    imageAlt: "Đĩa đậu hũ kho chay với rau củ",
+  },
+  {
+    title: "Tráng miệng",
+    imageSrc: "/images/categories/trang-mieng.png",
+    imageAlt: "Ly chè ba màu nước cốt dừa thơm ngon",
+  },
 ] as const;
 
 export function HomePageClient() {
@@ -52,6 +62,42 @@ export function HomePageClient() {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showPrev, setShowPrev] = useState(false);
+  const [showNext, setShowNext] = useState(true);
+
+  const checkScrollLimits = () => {
+    const el = scrollRef.current;
+    if (el) {
+      setShowPrev(el.scrollLeft > 5);
+      setShowNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 5);
+    }
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) {
+      checkScrollLimits();
+      el.addEventListener("scroll", checkScrollLimits);
+      window.addEventListener("resize", checkScrollLimits);
+      return () => {
+        el.removeEventListener("scroll", checkScrollLimits);
+        window.removeEventListener("resize", checkScrollLimits);
+      };
+    }
+  }, []);
+
+  const handleScroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (el) {
+      const scrollAmount = el.clientWidth;
+      el.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   useEffect(() => {
     if (!errorMessage) {
@@ -126,16 +172,49 @@ export function HomePageClient() {
         aria-labelledby="categories-heading"
         className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-8"
       >
-        <h2
-          id="categories-heading"
-          className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl"
-        >
-          Khám phá theo cách chế biến
-        </h2>
-        <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-7">
-          {CATEGORIES.map((category) => (
-            <CategoryCard key={category.title} {...category} />
-          ))}
+        <div className="flex items-center justify-between">
+          <h2
+            id="categories-heading"
+            className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl"
+          >
+            Khám phá theo cách chế biến
+          </h2>
+          {/* Navigation Controls */}
+          <div className="hidden items-center gap-2 sm:flex">
+            <button
+              type="button"
+              disabled={!showPrev}
+              onClick={() => handleScroll("left")}
+              aria-label="Danh mục trước"
+              className="flex size-10 items-center justify-center rounded-full border border-terracotta/20 bg-white text-charcoal shadow-sm transition hover:bg-terracotta hover:text-white hover:shadow disabled:pointer-events-none disabled:opacity-40"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="size-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              disabled={!showNext}
+              onClick={() => handleScroll("right")}
+              aria-label="Danh mục sau"
+              className="flex size-10 items-center justify-center rounded-full border border-terracotta/20 bg-white text-charcoal shadow-sm transition hover:bg-terracotta hover:text-white hover:shadow disabled:pointer-events-none disabled:opacity-40"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="size-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="relative mt-7">
+          <div
+            ref={scrollRef}
+            className="-mx-4 flex gap-5 overflow-x-auto px-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-none sm:mx-0 sm:px-0"
+          >
+            {CATEGORIES.map((category) => (
+              <CategoryCard key={category.title} {...category} />
+            ))}
+          </div>
         </div>
       </section>
 
