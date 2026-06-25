@@ -11,7 +11,16 @@ export const metadata: Metadata = {
   title: "Khám phá công thức",
 };
 
-export default async function ExploreRecipesPage() {
+interface ExploreRecipesPageProps {
+  searchParams: Promise<{ category?: string }>;
+}
+
+export default async function ExploreRecipesPage({
+  searchParams,
+}: ExploreRecipesPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const defaultCategory = resolvedSearchParams.category;
+
   const [{ items: recipes }, categories] = await Promise.all([
     listRecipes({ limit: DEFAULT_RECIPE_LIST_LIMIT }),
     listCategories(),
@@ -41,7 +50,7 @@ export default async function ExploreRecipesPage() {
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
       <h1 className="sr-only">Khám phá công thức</h1>
-      <CategoryTabs panels={panels} />
+      <CategoryTabs panels={panels} defaultCategory={defaultCategory} />
     </div>
   );
 }
