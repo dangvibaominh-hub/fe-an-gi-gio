@@ -53,13 +53,14 @@ const CATEGORIES = [
 
 export function HomePageClient() {
   const router = useRouter();
-  const [ingredients, setIngredients] = useState(() => {
-    const storedIngredients = readSearchIngredients();
+  const [ingredients, setIngredients] = useState(DEFAULT_INGREDIENTS);
 
-    return storedIngredients.length > 0
-      ? storedIngredients
-      : DEFAULT_INGREDIENTS;
-  });
+  useEffect(() => {
+    const stored = readSearchIngredients();
+    if (stored.length > 0) {
+      setIngredients(stored);
+    }
+  }, []);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
