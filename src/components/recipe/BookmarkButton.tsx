@@ -73,7 +73,6 @@ export function BookmarkButton({
     <IconButton
       aria-label={`${isSaved ? "Bỏ lưu" : "Lưu"} công thức ${recipeTitle}`}
       isActive={isSaved}
-      disabled={isPending}
       onClick={handleToggleSave}
       className="bg-white/90 shadow-warm hover:bg-white"
     >

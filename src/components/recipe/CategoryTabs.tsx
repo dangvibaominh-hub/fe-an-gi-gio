@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import type { RecipeCategory } from "@/lib/constants/recipe";
@@ -18,8 +17,6 @@ export interface CategoryTabsProps {
 }
 
 export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
-  const router = useRouter();
-
   // Find the category that matches defaultCategory, or fallback to first category
   const getInitialCategory = (): CategoryPanel["category"] => {
     if (!defaultCategory) {
@@ -38,20 +35,17 @@ export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
     getInitialCategory,
   );
 
-  // Sync activeCategory state if defaultCategory changes (e.g. browser navigation or clicking a link)
+  // Sync activeCategory only when server-provided defaultCategory changes.
   useEffect(() => {
     if (!defaultCategory) {
-      if (activeCategory !== ALL_CATEGORIES_TAB) {
-        setActiveCategory(ALL_CATEGORIES_TAB);
-      }
       return;
     }
 
     const matched = panels.find((panel) => panel.category === defaultCategory);
-    if (matched && matched.category !== activeCategory) {
+    if (matched) {
       setActiveCategory(matched.category);
     }
-  }, [activeCategory, defaultCategory, panels]);
+  }, [defaultCategory, panels]);
 
   const activePanel = panels.find(
     (panel) => panel.category === activeCategory,
@@ -59,14 +53,21 @@ export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
 
   const handleTabChange = (category: CategoryPanel["category"]) => {
     setActiveCategory(category);
-    if (category === ALL_CATEGORIES_TAB) {
-      router.replace("/kham-pha", { scroll: false });
+
+    if (typeof window === "undefined") {
       return;
     }
 
-    router.replace(`/kham-pha?category=${encodeURIComponent(category)}`, {
-      scroll: false,
-    });
+    if (category === ALL_CATEGORIES_TAB) {
+      window.history.replaceState(null, "", "/kham-pha");
+      return;
+    }
+
+    window.history.replaceState(
+      null,
+      "",
+      `/kham-pha?category=${encodeURIComponent(category)}`,
+    );
   };
 
   return (

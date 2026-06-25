@@ -54,7 +54,10 @@ export default async function RecipeDetailPage({
                 {recipe.title}
               </h1>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <DifficultyBadge difficulty={recipe.difficulty} />
+                <DifficultyBadge
+                  difficulty={recipe.difficulty}
+                  variant="overlay"
+                />
                 <span className="rounded-full bg-white/85 px-3 py-1 text-sm font-semibold text-charcoal">
                   {recipe.cookTimeMinutes} phút
                 </span>
