@@ -20,7 +20,7 @@ export function RecipeIngredientsPanel({
   return (
     <section
       aria-labelledby="ingredients-heading"
-      className="rounded-2xl bg-white p-6 shadow-warm"
+      className="flex h-full min-h-0 flex-col rounded-2xl bg-white p-6 shadow-warm"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2

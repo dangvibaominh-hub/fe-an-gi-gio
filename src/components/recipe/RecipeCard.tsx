@@ -38,6 +38,10 @@ export function RecipeCard({
           className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
 
+        <div className="absolute left-3 top-3 z-20">
+          <DifficultyBadge difficulty={difficulty} variant="overlay" />
+        </div>
+
         <div className="absolute right-3 top-3 z-20">
           <BookmarkButton
             recipeSlug={slug}
@@ -58,8 +62,6 @@ export function RecipeCard({
             match ? "pt-3" : "pt-5"
           }`}
         >
-          <DifficultyBadge difficulty={difficulty} />
-
           <span className="inline-flex items-center gap-1.5">
             <svg
               aria-hidden="true"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { RecipeIngredient } from "@/lib/types/recipe";
 
@@ -26,12 +26,21 @@ export function IngredientChecklist({
     ),
   );
 
-  const availableIngredients = ingredients.filter(
-    (ingredient) => ingredient.haveIt,
-  );
-  const missingIngredients = ingredients.filter(
-    (ingredient) => !ingredient.haveIt,
-  );
+  const sortedIngredients = useMemo(() => {
+    return ingredients
+      .map((ingredient, index) => ({ index, ingredient }))
+      .sort((left, right) => {
+        const leftChecked = checkedIngredients[left.ingredient.id] ?? false;
+        const rightChecked = checkedIngredients[right.ingredient.id] ?? false;
+
+        if (leftChecked !== rightChecked) {
+          return leftChecked ? 1 : -1;
+        }
+
+        return left.index - right.index;
+      })
+      .map(({ ingredient }) => ingredient);
+  }, [checkedIngredients, ingredients]);
 
   function toggleIngredient(id: string) {
     setCheckedIngredients((currentState) => ({
@@ -41,58 +50,15 @@ export function IngredientChecklist({
   }
 
   return (
-    <div className="mt-8 space-y-8">
-      <IngredientGroup
-        id="available"
-        title="Bạn đã có"
-        ingredients={availableIngredients}
-        baseServings={baseServings}
-        servings={servings}
-        checkedIngredients={checkedIngredients}
-        onToggle={toggleIngredient}
-      />
-      <IngredientGroup
-        id="missing"
-        title="Cần mua thêm"
-        ingredients={missingIngredients}
-        baseServings={baseServings}
-        servings={servings}
-        checkedIngredients={checkedIngredients}
-        onToggle={toggleIngredient}
-      />
-    </div>
-  );
-}
-
-interface IngredientGroupProps {
-  baseServings: number;
-  checkedIngredients: Record<string, boolean>;
-  id: string;
-  ingredients: RecipeIngredient[];
-  onToggle: (id: string) => void;
-  servings: number;
-  title: string;
-}
-
-function IngredientGroup({
-  baseServings,
-  checkedIngredients,
-  id,
-  ingredients,
-  onToggle,
-  servings,
-  title,
-}: IngredientGroupProps) {
-  return (
-    <section aria-labelledby={`ingredient-group-${id}`}>
+    <section aria-labelledby="ingredient-group-list" className="mt-8">
       <h3
-        id={`ingredient-group-${id}`}
+        id="ingredient-group-list"
         className="border-b border-terracotta/20 pb-3 text-sm font-bold uppercase tracking-wide text-terracotta"
       >
-        {title}
+        Nguyên liệu
       </h3>
       <ul className="mt-2 divide-y divide-terracotta/10">
-        {ingredients.map((ingredient) => {
+        {sortedIngredients.map((ingredient) => {
           const isChecked = checkedIngredients[ingredient.id] ?? false;
           const scaledAmount =
             ingredient.baseAmount * (servings / baseServings);
@@ -103,7 +69,7 @@ function IngredientGroup({
                 <input
                   type="checkbox"
                   checked={isChecked}
-                  onChange={() => onToggle(ingredient.id)}
+                  onChange={() => toggleIngredient(ingredient.id)}
                   className="mt-1 size-5 shrink-0 rounded border-terracotta/30 accent-sage"
                 />
                 <span className="min-w-0 flex-1">
