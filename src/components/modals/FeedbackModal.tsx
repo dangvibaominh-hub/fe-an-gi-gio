@@ -112,7 +112,7 @@ function FeedbackForm({ cookingSessionId, onSuccess }: FeedbackFormProps) {
           className="mt-3 flex flex-wrap gap-2"
         >
           {[1, 2, 3, 4, 5].map((value) => {
-            const isSelected = rating === value;
+            const isSelected = rating !== null && value <= rating;
 
             return (
               <button

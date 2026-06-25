@@ -287,15 +287,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             method: "DELETE",
             path: `/api/v1/me/saved-recipes/${encodeURIComponent(recipeSlug)}`,
           });
+
+          setSavedRecipes((currentRecipes) =>
+            currentRecipes.filter((recipe) => recipe.slug !== recipeSlug),
+          );
         } else {
-          await authorizedRequest<SavedRecipe>({
+          const savedRecipe = await authorizedRequest<SavedRecipe>({
             body: {},
             method: "POST",
             path: `/api/v1/me/saved-recipes/${encodeURIComponent(recipeSlug)}`,
           });
+
+          setSavedRecipes((currentRecipes) => {
+            if (currentRecipes.some((recipe) => recipe.slug === recipeSlug)) {
+              return currentRecipes;
+            }
+
+            return [savedRecipe, ...currentRecipes];
+          });
         }
 
-        await refreshSavedRecipes();
+        notifySavedRecipesChanged();
         return !currentlySaved;
       } catch (error) {
         if (error instanceof ApiRequestError && error.status === 401) {
@@ -311,7 +323,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isRecipeSaved,
       logout,
       openAuthModal,
-      refreshSavedRecipes,
     ],
   );
 

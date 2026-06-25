@@ -21,9 +21,9 @@ const HISTORY_SORT_OPTIONS: ReadonlyArray<{
   label: string;
   value: CookingHistorySort;
 }> = [
-  { label: "Gần đây nhất", value: "completed-at-desc" },
-  { label: "Đánh giá cao nhất", value: "rating-desc" },
-];
+    { label: "Gần đây nhất", value: "completed-at-desc" },
+    { label: "Đánh giá cao nhất", value: "rating-desc" },
+  ];
 
 const ISSUE_LABELS = Object.fromEntries(
   FEEDBACK_ISSUE_OPTIONS.map(({ label, value }) => [value, label]),

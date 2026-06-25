@@ -52,7 +52,9 @@ export function BookmarkButton({
     }
 
     requireAuth(() => {
+      const optimisticSavedState = !isSaved;
       setIsPending(true);
+      setIsSaved(optimisticSavedState);
 
       void toggleSavedRecipe(recipeSlug)
         .then((nextSavedState) => {
@@ -71,7 +73,6 @@ export function BookmarkButton({
     <IconButton
       aria-label={`${isSaved ? "Bỏ lưu" : "Lưu"} công thức ${recipeTitle}`}
       isActive={isSaved}
-      disabled={isPending}
       onClick={handleToggleSave}
       className="bg-white/90 shadow-warm hover:bg-white"
     >

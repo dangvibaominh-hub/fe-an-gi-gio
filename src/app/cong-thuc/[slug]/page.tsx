@@ -54,7 +54,10 @@ export default async function RecipeDetailPage({
                 {recipe.title}
               </h1>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <DifficultyBadge difficulty={recipe.difficulty} />
+                <DifficultyBadge
+                  difficulty={recipe.difficulty}
+                  variant="overlay"
+                />
                 <span className="rounded-full bg-white/85 px-3 py-1 text-sm font-semibold text-charcoal">
                   {recipe.cookTimeMinutes} phút
                 </span>
@@ -71,14 +74,14 @@ export default async function RecipeDetailPage({
         </div>
       </header>
 
-      <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <RecipeIngredientsPanelWithSession
           recipeSlug={recipe.slug}
           baseServings={recipe.baseServings}
           ingredients={recipe.ingredients}
         />
 
-        <div>
+        <div className="flex min-h-0 flex-col">
           <StartCookingButton recipeSlug={recipe.slug} />
           <StepList
             steps={recipe.steps}

@@ -49,8 +49,8 @@ export function SavedRecipesView() {
     return (
       <main className="min-h-[calc(100vh-80px)] bg-[#fff8ec]">
         <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-medium tracking-tight text-charcoal sm:text-5xl">
+          <div className="max-w-4xl">
+            <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
               Công thức đã lưu
             </h1>
             <p className="mt-3 text-sm text-charcoal/70 sm:text-base">
@@ -72,8 +72,8 @@ export function SavedRecipesView() {
   return (
     <main className="min-h-[calc(100vh-80px)] bg-[#fff8ec]">
       <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-        <div>
-          <h1 className="text-4xl font-medium tracking-tight text-charcoal sm:text-5xl">
+        <div className="max-w-4xl">
+          <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
             Công thức đã lưu
           </h1>
 
@@ -83,7 +83,11 @@ export function SavedRecipesView() {
           </p>
         </div>
 
-        <div className="mt-9 flex flex-wrap gap-3">
+        <div
+          role="tablist"
+          aria-label="Bộ lọc công thức đã lưu"
+          className="mt-9 flex gap-3 overflow-x-auto pb-2 sm:flex-wrap sm:gap-4"
+        >
           {SAVED_FILTERS.map((filter) => {
             const isActive = activeFilter === filter;
 
@@ -91,12 +95,14 @@ export function SavedRecipesView() {
               <button
                 key={filter}
                 type="button"
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => setActiveFilter(filter)}
-                className={`rounded-full border px-5 py-2.5 text-sm font-semibold transition ${
-                  isActive
-                    ? "border-amber-400 bg-amber-400 text-charcoal"
-                    : "border-terracotta/25 bg-white/50 text-charcoal hover:bg-white"
-                }`}
+                className={`shrink-0 rounded-full border border-terracotta/20 px-5 py-2.5 text-sm font-semibold transition sm:px-6 sm:text-base ${"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+                  } ${isActive
+                    ? "bg-mustard text-charcoal shadow-warm"
+                    : "bg-terracotta/10 text-charcoal hover:bg-terracotta/15"
+                  }`}
               >
                 {filter}
               </button>
@@ -111,7 +117,7 @@ export function SavedRecipesView() {
               description="Hãy vào Khám phá công thức và bấm biểu tượng bookmark để lưu món bạn thích."
             />
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4">
               {filteredRecipes.map((recipe) => (
                 <RecipeCard key={recipe.slug} {...recipe} />
               ))}
