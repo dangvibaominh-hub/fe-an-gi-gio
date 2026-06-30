@@ -4,33 +4,24 @@ import { notFound } from "next/navigation";
 
 import { DifficultyBadge } from "@/components/recipe/DifficultyBadge";
 import { RecipeActions } from "@/components/recipe/RecipeActions";
-import { RecipeIngredientsPanel } from "@/components/recipe/RecipeIngredientsPanel";
+import { RecipeIngredientsPanelWithSession } from "@/components/recipe/RecipeIngredientsPanelWithSession";
+import { StartCookingButton } from "@/components/recipe/StartCookingButton";
 import { StepList } from "@/components/recipe/StepList";
-import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
-import {
-  getRecipeBySlug,
-  MOCK_RECIPES,
-} from "@/lib/mockRecipes";
+import { getRecipeBySlug } from "@/lib/api/recipes";
 
 interface RecipeDetailPageProps {
   params: Promise<{ slug: string }>;
-}
-
-export function generateStaticParams() {
-  return MOCK_RECIPES.map((recipe) => ({ slug: recipe.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: RecipeDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const recipe = getRecipeBySlug(slug);
+  const recipe = await getRecipeBySlug(slug);
 
   return {
     title: recipe?.title ?? "Không tìm thấy công thức",
-    description: recipe
-      ? `Hướng dẫn chi tiết món ${recipe.title}.`
-      : undefined,
+    description: recipe?.description,
   };
 }
 
@@ -38,7 +29,7 @@ export default async function RecipeDetailPage({
   params,
 }: RecipeDetailPageProps) {
   const { slug } = await params;
-  const recipe = getRecipeBySlug(slug);
+  const recipe = await getRecipeBySlug(slug);
 
   if (!recipe) {
     notFound();
@@ -63,7 +54,10 @@ export default async function RecipeDetailPage({
                 {recipe.title}
               </h1>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <DifficultyBadge difficulty={recipe.difficulty} />
+                <DifficultyBadge
+                  difficulty={recipe.difficulty}
+                  variant="overlay"
+                />
                 <span className="rounded-full bg-white/85 px-3 py-1 text-sm font-semibold text-charcoal">
                   {recipe.cookTimeMinutes} phút
                 </span>
@@ -72,24 +66,23 @@ export default async function RecipeDetailPage({
                 </span>
               </div>
             </div>
-            <RecipeActions />
+            <RecipeActions
+              recipeSlug={recipe.slug}
+              recipeTitle={recipe.title}
+            />
           </div>
         </div>
       </header>
 
-      <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-        <RecipeIngredientsPanel
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        <RecipeIngredientsPanelWithSession
+          recipeSlug={recipe.slug}
           baseServings={recipe.baseServings}
           ingredients={recipe.ingredients}
         />
 
-        <div>
-          <ButtonPrimary
-            href={`/cong-thuc/${recipe.slug}/nau`}
-            className="mb-5 w-full"
-          >
-            Bắt đầu nấu
-          </ButtonPrimary>
+        <div className="flex min-h-0 flex-col">
+          <StartCookingButton recipeSlug={recipe.slug} />
           <StepList
             steps={recipe.steps}
             cookingTerms={recipe.cookingTerms}

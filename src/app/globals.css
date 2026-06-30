@@ -39,3 +39,11 @@
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+@utility scrollbar-none {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

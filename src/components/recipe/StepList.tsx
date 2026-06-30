@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { RecipeStep, TechniqueIcon } from "@/lib/mockRecipes";
+import type { RecipeStep, TechniqueIcon } from "@/lib/types/recipe";
 
 export interface StepListProps {
   cookingTerms: Record<string, string>;

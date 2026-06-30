@@ -3,11 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { IconButton } from "@/components/ui/IconButton";
-import {
-  SAVED_RECIPES_CHANGED_EVENT,
-  isRecipeSaved,
-  toggleSavedRecipe,
-} from "@/lib/savedRecipes";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { SAVED_RECIPES_CHANGED_EVENT } from "@/lib/auth/events";
 
 export interface BookmarkButtonProps {
   recipeSlug: string;
@@ -18,7 +15,13 @@ export function BookmarkButton({
   recipeSlug,
   recipeTitle,
 }: BookmarkButtonProps) {
+  const {
+    isRecipeSaved,
+    requireAuth,
+    toggleSavedRecipe,
+  } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     function updateSavedState() {
@@ -32,22 +35,38 @@ export function BookmarkButton({
       updateSavedState,
     );
 
-    window.addEventListener("storage", updateSavedState);
-
     return () => {
       window.removeEventListener(
         SAVED_RECIPES_CHANGED_EVENT,
         updateSavedState,
       );
-
-      window.removeEventListener("storage", updateSavedState);
     };
-  }, [recipeSlug]);
+  }, [isRecipeSaved, recipeSlug]);
 
-  function handleToggleSave() {
-    const nextSavedState = toggleSavedRecipe(recipeSlug);
+  function handleToggleSave(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
 
-    setIsSaved(nextSavedState);
+    if (isPending) {
+      return;
+    }
+
+    requireAuth(() => {
+      const optimisticSavedState = !isSaved;
+      setIsPending(true);
+      setIsSaved(optimisticSavedState);
+
+      void toggleSavedRecipe(recipeSlug)
+        .then((nextSavedState) => {
+          setIsSaved(nextSavedState);
+        })
+        .catch(() => {
+          setIsSaved(isRecipeSaved(recipeSlug));
+        })
+        .finally(() => {
+          setIsPending(false);
+        });
+    });
   }
 
   return (

@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 
-const INITIAL_INGREDIENTS = ["Thịt heo", "Cà rốt", "Nấm hương"];
+export interface IngredientPillInputProps {
+  ingredients: string[];
+  onIngredientsChange: (ingredients: string[]) => void;
+}
 
-export function IngredientPillInput() {
-  const [ingredients, setIngredients] =
-    useState<string[]>(INITIAL_INGREDIENTS);
+export function IngredientPillInput({
+  ingredients,
+  onIngredientsChange,
+}: IngredientPillInputProps) {
   const [inputValue, setInputValue] = useState("");
 
   function addIngredient() {
@@ -24,16 +28,13 @@ export function IngredientPillInput() {
       return;
     }
 
-    setIngredients((currentIngredients) => [
-      ...currentIngredients,
-      nextIngredient,
-    ]);
+    onIngredientsChange([...ingredients, nextIngredient]);
     setInputValue("");
   }
 
   function removeIngredient(ingredientToRemove: string) {
-    setIngredients((currentIngredients) =>
-      currentIngredients.filter(
+    onIngredientsChange(
+      ingredients.filter(
         (ingredient) => ingredient !== ingredientToRemove,
       ),
     );

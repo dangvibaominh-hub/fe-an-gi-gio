@@ -8,7 +8,7 @@ import {
   type ServingFilter,
   type TimeFilter,
 } from "@/components/recipe/FilterSidebar";
-import type { RecipeDifficulty } from "@/lib/mockRecipes";
+import type { RecipeDifficulty } from "@/lib/types/recipe";
 
 export interface FilterableRecipe {
   card: ReactNode;
@@ -19,8 +19,10 @@ export interface FilterableRecipe {
 }
 
 export interface ResultsRecipeBrowserProps {
+  contextBanner?: ReactNode;
   emptyState: ReactNode;
   recipes: FilterableRecipe[];
+  sortLabel?: string;
 }
 
 const EMPTY_FILTERS: RecipeFilters = {
@@ -30,8 +32,10 @@ const EMPTY_FILTERS: RecipeFilters = {
 };
 
 export function ResultsRecipeBrowser({
+  contextBanner,
   emptyState,
   recipes,
+  sortLabel = "Dễ đến Khó",
 }: ResultsRecipeBrowserProps) {
   const [filters, setFilters] = useState<RecipeFilters>(EMPTY_FILTERS);
 
@@ -78,6 +82,8 @@ export function ResultsRecipeBrowser({
       </div>
 
       <section aria-labelledby="results-heading">
+        {contextBanner}
+
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <h1
             id="results-heading"
@@ -86,11 +92,12 @@ export function ResultsRecipeBrowser({
             Kết quả công thức
           </h1>
           <p className="text-sm text-charcoal/65 sm:text-base">
-            Sắp xếp: <strong className="text-charcoal">Dễ đến Khó</strong>
+            Sắp xếp:{" "}
+            <strong className="text-charcoal">{sortLabel}</strong>
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-4">
           {filteredRecipes.length > 0
             ? filteredRecipes.map((recipe) => (
                 <div key={recipe.slug}>{recipe.card}</div>

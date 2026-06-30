@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { ModalBase } from "@/components/modals/ModalBase";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/components/ui/ButtonSecondary";
@@ -20,8 +21,8 @@ type AuthFormValues = Record<AuthField, string>;
 
 export interface AuthModalProps {
   isOpen: boolean;
+  onAuthenticated?: (mode: AuthMode) => void;
   onClose: () => void;
-  onSuccess: (mode: AuthMode) => void;
 }
 
 const INITIAL_FORM_VALUES: AuthFormValues = {
@@ -45,9 +46,10 @@ const SUBMIT_ERROR_MESSAGES: Record<AuthMode, string> = {
 
 export function AuthModal({
   isOpen,
+  onAuthenticated,
   onClose,
-  onSuccess,
 }: AuthModalProps) {
+  const { login, register } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [formValues, setFormValues] = useState(INITIAL_FORM_VALUES);
   const [errors, setErrors] = useState<AuthErrors>({});
@@ -70,12 +72,14 @@ export function AuthModal({
       ...currentErrors,
       [field]: undefined,
     }));
+    setFormError(null);
   }
 
   function changeMode(nextMode: AuthMode) {
     setMode(nextMode);
     setSubmitError(null);
     setErrors({});
+    setFormError(null);
   }
 
   function resetFormState() {
@@ -105,6 +109,18 @@ export function AuthModal({
     }
 
     setIsSubmitting(true);
+    setFormError(null);
+
+    try {
+      if (mode === "register") {
+        await register(
+          formValues.email.trim(),
+          formValues.password,
+          formValues.name.trim(),
+        );
+      } else {
+        await login(formValues.email.trim(), formValues.password);
+      }
 
     try {
       const authResult = await submitAuthForm(mode, formValues);
@@ -123,6 +139,7 @@ export function AuthModal({
     setIsSubmitting(false);
     setSubmitError(null);
     setErrors({});
+    setFormError(null);
     onClose();
   }
 
