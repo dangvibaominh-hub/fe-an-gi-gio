@@ -1,11 +1,8 @@
-const DEFAULT_API_BASE_URL = "http://localhost:4000/api/v1";
+const DEFAULT_API_URL = "https://api-production-afd7.up.railway.app";
 
-export function getApiBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
-  const baseUrl = configuredUrl || DEFAULT_API_BASE_URL;
-  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+export function getApiBaseUrl(): string {
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_URL;
 
-  return normalizedBaseUrl.endsWith("/api/v1")
-    ? normalizedBaseUrl
-    : `${normalizedBaseUrl}/api/v1`;
+  return configuredUrl.replace(/\/$/, "");
 }
