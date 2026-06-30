@@ -12,6 +12,7 @@ import { IconButton } from "@/components/ui/IconButton";
 export interface ModalBaseProps {
   "aria-labelledby"?: string;
   children: ReactNode;
+  panelClassName?: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -25,9 +26,15 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
+const MODAL_PANEL_CLASSES = [
+  "relative max-h-[calc(100vh-2rem)] w-full max-w-xl overflow-y-auto",
+  "rounded-2xl bg-white p-6 shadow-2xl outline-none sm:p-8",
+].join(" ");
+
 export function ModalBase({
   "aria-labelledby": ariaLabelledBy,
   children,
+  panelClassName = "",
   isOpen,
   onClose,
 }: ModalBaseProps) {
@@ -128,7 +135,7 @@ export function ModalBase({
         aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
         onKeyDown={trapFocus}
-        className="relative max-h-[calc(100vh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl outline-none sm:p-8"
+        className={`${MODAL_PANEL_CLASSES} ${panelClassName}`.trim()}
       >
         <IconButton
           aria-label="Đóng"

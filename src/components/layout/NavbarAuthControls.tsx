@@ -6,13 +6,40 @@ import { useEffect, useRef, useState } from "react";
 import { AuthModal } from "@/components/modals/AuthModal";
 import { ButtonSecondary } from "@/components/ui/ButtonSecondary";
 import { Toast } from "@/components/ui/Toast";
+import { logoutUser } from "@/lib/api";
+import {
+  AUTH_SESSION_CHANGED_EVENT,
+  clearStoredSession,
+  getStoredSession,
+} from "@/lib/authSession";
 
 export function NavbarAuthControls() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [displayInitial, setDisplayInitial] = useState("B");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function syncSession() {
+      const session = getStoredSession();
+
+      setIsAuthenticated(Boolean(session));
+      setDisplayInitial(
+        session?.user.displayName.charAt(0).toUpperCase() ?? "B",
+      );
+    }
+
+    syncSession();
+    window.addEventListener(AUTH_SESSION_CHANGED_EVENT, syncSession);
+    window.addEventListener("storage", syncSession);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, syncSession);
+      window.removeEventListener("storage", syncSession);
+    };
+  }, []);
 
   useEffect(() => {
     if (!toastMessage) {
@@ -57,7 +84,6 @@ export function NavbarAuthControls() {
   }, [isUserMenuOpen]);
 
   function handleAuthSuccess(mode: "login" | "register") {
-    // TODO: thay bằng auth/session thật.
     setIsAuthenticated(true);
     setIsAuthModalOpen(false);
     setToastMessage(
@@ -67,8 +93,14 @@ export function NavbarAuthControls() {
     );
   }
 
-  function handleSignOut() {
-    // TODO: thay bằng auth/session thật.
+  async function handleSignOut() {
+    const session = getStoredSession();
+
+    if (session) {
+      await logoutUser(session.tokens.refreshToken).catch(() => undefined);
+    }
+
+    clearStoredSession();
     setIsAuthenticated(false);
     setIsUserMenuOpen(false);
     setToastMessage("Đăng xuất thành công");
@@ -88,7 +120,7 @@ export function NavbarAuthControls() {
             }
             className="inline-flex size-10 items-center justify-center rounded-full bg-gradient-to-r from-terracotta to-mustard font-bold text-white shadow-warm transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-terracotta"
           >
-            B
+            {displayInitial}
           </button>
 
           {isUserMenuOpen ? (
