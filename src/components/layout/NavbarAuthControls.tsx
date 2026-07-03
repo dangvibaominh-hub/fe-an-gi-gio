@@ -124,6 +124,14 @@ export function NavbarAuthControls() {
               >
                 Cài đặt
               </UserMenuLink>
+              {user?.role === "ADMIN" ? (
+                <UserMenuLink
+                  href="/admin"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  Quản trị
+                </UserMenuLink>
+              ) : null}
               <button
                 type="button"
                 role="menuitem"
