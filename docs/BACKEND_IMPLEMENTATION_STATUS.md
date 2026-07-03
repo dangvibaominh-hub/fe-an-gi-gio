@@ -1,11 +1,11 @@
 # Backend implementation status (mirror)
 
-> **Nguồn gốc:** `be-an-gi-gio/docs/IMPLEMENTATION_STATUS.md` + kiểm tra codebase ngày 2026-06-24.  
+> **Nguồn gốc:** `be-an-gi-gio/docs/IMPLEMENTATION_STATUS.md` + kiểm tra codebase ngày 2026-07-03.
 > Cập nhật file gốc ở backend khi có thay đổi lớn; đồng bộ bản mirror này vào frontend repo để agent làm việc trên FE không cần mở repo backend.
 
 ## Trạng thái hiện tại
 
-Backend **đã hoàn tất Phase 0–5**. Phase 6 (Admin) và Phase 7 (Phụ Bếp) **chưa bắt đầu**.
+Backend **đã hoàn tất Phase 0–6**. Phase 7 (Phụ Bếp) **chưa bắt đầu**.
 
 Production API: `https://api-production-afd7.up.railway.app`  
 Swagger: `https://api-production-afd7.up.railway.app/docs/`
@@ -45,7 +45,7 @@ Swagger: `https://api-production-afd7.up.railway.app/docs/`
 | Normalize / alias nguyên liệu tiếng Việt | Done |
 | matched/missing ingredients + score | Done |
 | Gemini fallback → recipe `PENDING` | Done |
-| Admin duyệt recipe `PENDING` | **Chưa** (thuộc Phase 6) |
+| Admin duyệt recipe `PENDING` | Done — Phase 6 moderation API |
 
 ---
 
@@ -84,9 +84,18 @@ Chi tiết: `docs/PHASE_5_BACKEND_STATUS.md`
 
 ---
 
-## Phase 6–8 — Chưa triển khai
+## Phase 6 — Admin
 
-- **Phase 6:** `/api/v1/admin/*` — CRUD công thức, kiểm duyệt Gemini, quản lý user
+Chi tiết: `docs/PHASE_6_BACKEND_STATUS.md`
+
+- Recipe CRUD và soft-hide.
+- Gemini recipe approve/reject.
+- User status management và refresh-token revocation.
+- JWT `ADMIN` RBAC.
+- Append-only admin audit log.
+
+## Phase 7–8 — Chưa triển khai
+
 - **Phase 7:** Chat / Phụ Bếp conversation APIs
 - **Phase 8:** E2E toàn hệ thống, a11y audit (backend đã deploy Railway)
 
@@ -94,5 +103,5 @@ Chi tiết: `docs/PHASE_5_BACKEND_STATUS.md`
 
 ## Tests (backend)
 
-- `recipe-api`, `recommendation-api`, `auth-saved-api`, `cooking-session-api`, `feedback-api`
+- `recipe-api`, `recommendation-api`, `auth-saved-api`, `cooking-session-api`, `feedback-api`, `admin-api`
 - `ingredient-normalizer`, `gemini-recipe-adapter`, `recommendation-service`

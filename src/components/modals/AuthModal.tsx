@@ -242,7 +242,14 @@ export function AuthModal({
               <span className="h-px flex-1 bg-terracotta/25" />
             </div>
 
-            <GoogleSignInButton disabled={isSubmitting} />
+            <GoogleSignInButton
+              disabled={isSubmitting}
+              onAuthenticated={() => {
+                setFormError(null);
+                onAuthenticated?.("login");
+              }}
+              onError={setFormError}
+            />
           </>
         ) : null}
 

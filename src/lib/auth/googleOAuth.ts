@@ -11,6 +11,7 @@ declare global {
             element: HTMLElement,
             config: {
               locale?: string;
+              click_listener?: () => void;
               size?: "large" | "medium" | "small";
               text?: "continue_with" | "signin_with" | "signup_with";
               theme?: "filled_black" | "filled_blue" | "outline";
