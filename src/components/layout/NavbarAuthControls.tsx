@@ -102,9 +102,20 @@ export function NavbarAuthControls() {
             onClick={() =>
               setIsUserMenuOpen((currentValue) => !currentValue)
             }
-            className="inline-flex size-10 items-center justify-center rounded-full bg-gradient-to-r from-terracotta to-mustard font-bold text-white shadow-warm transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-terracotta"
+            className="inline-flex h-10 items-center gap-2 rounded-full pr-3 text-left transition hover:bg-terracotta/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-terracotta"
           >
-            {getUserInitial(user)}
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-terracotta to-mustard font-bold text-white shadow-warm">
+              {getUserInitial(user)}
+            </span>
+            <span
+              className="hidden max-w-32 truncate text-sm font-medium text-charcoal sm:block"
+              title={user?.displayName ?? undefined}
+            >
+              Hello,{" "}
+              <span className="font-bold">
+                {user?.displayName ?? user?.email}!
+              </span>
+            </span>
           </button>
 
           {isUserMenuOpen ? (
