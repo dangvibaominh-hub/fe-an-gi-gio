@@ -1,8 +1,5 @@
 "use client";
 
-import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
-import { ButtonSecondary } from "@/components/ui/ButtonSecondary";
-
 interface StepNavigationButtonsProps {
   canGoBack: boolean;
   canGoForward: boolean;
@@ -21,35 +18,30 @@ export function StepNavigationButtons({
   onForward,
 }: StepNavigationButtonsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-      <ButtonSecondary
+    <div className="flex items-center justify-between gap-3">
+      <button
         type="button"
         onClick={onBack}
         disabled={!canGoBack || isCompleting}
-        className="w-full"
+        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-terracotta/20 bg-white px-5 text-xs font-bold uppercase text-charcoal transition hover:border-terracotta/40 hover:text-terracotta disabled:cursor-not-allowed disabled:opacity-45"
       >
+        <span aria-hidden="true">←</span>
         Bước trước
-      </ButtonSecondary>
+      </button>
 
-      {isLastStep ? (
-        <ButtonPrimary
-          type="button"
-          onClick={onForward}
-          disabled={!canGoForward || isCompleting}
-          className="w-full"
-        >
-          {isCompleting ? "Đang hoàn thành..." : "Hoàn thành món ăn"}
-        </ButtonPrimary>
-      ) : (
-        <ButtonPrimary
-          type="button"
-          onClick={onForward}
-          disabled={!canGoForward || isCompleting}
-          className="w-full"
-        >
-          Bước sau
-        </ButtonPrimary>
-      )}
+      <button
+        type="button"
+        onClick={onForward}
+        disabled={!canGoForward || isCompleting}
+        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-terracotta px-5 text-xs font-bold uppercase text-white transition hover:bg-terracotta/90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isLastStep
+          ? isCompleting
+            ? "Đang hoàn thành..."
+            : "Hoàn thành món ăn"
+          : "Bước sau"}
+        <span aria-hidden="true">→</span>
+      </button>
     </div>
   );
 }

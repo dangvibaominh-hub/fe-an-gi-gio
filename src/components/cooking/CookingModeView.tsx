@@ -31,12 +31,8 @@ export interface CookingModeViewProps {
 
 export function CookingModeView({ recipe }: CookingModeViewProps) {
   const router = useRouter();
-  const {
-    isAuthenticated,
-    isInitializing,
-    openAuthModal,
-    requireAuth,
-  } = useAuth();
+  const { isAuthenticated, isInitializing, openAuthModal, requireAuth } =
+    useAuth();
 
   const [session, setSession] = useState<CookingSession | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -183,9 +179,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
   if (isInitializing) {
     return (
       <CookingModeShell recipeSlug={recipe.slug}>
-        <div className="grid flex-1 place-items-center text-charcoal/70">
-          Đang tải phiên nấu...
-        </div>
+        <CenteredPanel>Đang tải phiên nấu...</CenteredPanel>
       </CookingModeShell>
     );
   }
@@ -193,7 +187,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
   if (!isAuthenticated) {
     return (
       <CookingModeShell recipeSlug={recipe.slug}>
-        <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-10">
+        <div className="mx-auto flex w-full max-w-lg flex-col justify-center rounded-lg bg-[#fff8f0] p-8 shadow-warm">
           <h1 className="text-3xl font-bold text-charcoal">{recipe.title}</h1>
           <p className="mt-4 text-charcoal/70">
             Bạn cần đăng nhập để bắt đầu nấu và lưu tiến độ trên máy chủ.
@@ -224,7 +218,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
   if (loadError) {
     return (
       <CookingModeShell recipeSlug={recipe.slug}>
-        <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-10">
+        <div className="mx-auto w-full max-w-lg rounded-lg bg-[#fff8f0] p-8 shadow-warm">
           <ErrorState
             title="Không thể bắt đầu nấu"
             description={loadError}
@@ -240,47 +234,63 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
   if (isLoadingSession || !session || !currentStep) {
     return (
       <CookingModeShell recipeSlug={recipe.slug}>
-        <div className="grid flex-1 place-items-center text-charcoal/70">
-          Đang chuẩn bị công thức...
-        </div>
+        <CenteredPanel>Đang chuẩn bị công thức...</CenteredPanel>
       </CookingModeShell>
     );
   }
 
+  const timerSeconds =
+    currentStep.timerSeconds ?? Math.max(currentStep.estimatedMinutes, 1) * 60;
+
   return (
     <CookingModeShell recipeSlug={recipe.slug}>
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8">
-        <CookingProgressBar
-          currentStep={currentStepNumber}
-          totalSteps={totalSteps}
-        />
+      <section className="relative mx-auto flex min-h-[min(92vh,760px)] w-full max-w-[960px] flex-col rounded-lg border border-terracotta/15 bg-[#fff8f0] p-4 shadow-2xl sm:p-6">
+        <Link
+          href={`/cong-thuc/${recipe.slug}`}
+          aria-label="Đóng chế độ nấu"
+          className="absolute left-4 top-4 z-10 inline-flex size-8 items-center justify-center rounded-full bg-[#fde9e3] text-charcoal transition hover:bg-terracotta hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="size-4 fill-none stroke-current"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </Link>
 
-        <div className="mt-8 flex flex-1 flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex-1">
-            <CookingStepContent
-              cookingTerms={recipe.cookingTerms}
-              step={currentStep}
-              stepNumber={currentStepNumber}
-            />
-          </div>
+        <div className="pl-10 sm:px-12">
+          <CookingProgressBar
+            currentStep={currentStepNumber}
+            totalSteps={totalSteps}
+          />
+        </div>
 
-          {currentStep.timerSeconds ? (
-            <div className="lg:w-72 lg:shrink-0">
-              <CookingTimerPanel
-                key={currentStep.id}
-                timerSeconds={currentStep.timerSeconds}
-              />
-            </div>
-          ) : null}
+        <div className="mt-7 grid flex-1 gap-6 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
+          <CookingStepContent
+            cookingTerms={recipe.cookingTerms}
+            ingredients={recipe.ingredients}
+            recipeImage={recipe.image}
+            recipeImageAlt={recipe.imageAlt}
+            step={currentStep}
+            stepNumber={currentStepNumber}
+          />
+
+          <CookingTimerPanel
+            key={currentStep.id}
+            timerSeconds={timerSeconds}
+          />
         </div>
 
         {actionError ? (
-          <p className="mt-6 text-sm text-terracotta" role="alert">
+          <p className="mt-4 text-sm font-semibold text-terracotta" role="alert">
             {actionError}
           </p>
         ) : null}
 
-        <div className="sticky bottom-0 mt-8 border-t border-terracotta/15 bg-[#fff8ec] py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="mt-6 border-t border-terracotta/10 pt-4">
           <StepNavigationButtons
             canGoBack={currentStepNumber > 1}
             canGoForward
@@ -294,7 +304,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
             }}
           />
         </div>
-      </div>
+      </section>
 
       <FeedbackModal
         cookingSessionId={session.id}
@@ -311,32 +321,17 @@ interface CookingModeShellProps {
   recipeSlug: string;
 }
 
-function CookingModeShell({
-  children,
-  recipeSlug,
-}: CookingModeShellProps) {
+function CookingModeShell({ children }: CookingModeShellProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-[#fff8ec]">
-      <header className="flex items-center justify-between gap-4 border-b border-terracotta/15 px-4 py-4 sm:px-6">
-        <Link
-          href={`/cong-thuc/${recipeSlug}`}
-          className="inline-flex items-center gap-2 font-semibold text-charcoal transition hover:text-terracotta focus-visible:rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-terracotta"
-        >
-          <span className="inline-flex size-11 items-center justify-center rounded-full bg-white text-charcoal shadow-warm">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="size-5 fill-none stroke-current"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </span>
-          <span className="hidden sm:inline">Quay lại công thức</span>
-        </Link>
-      </header>
+    <main className="min-h-screen bg-[#28282f] bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255_/_0.16)_1px,transparent_0)] bg-[length:22px_22px] px-3 py-3 sm:px-6 sm:py-5">
+      {children}
+    </main>
+  );
+}
 
+function CenteredPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mx-auto grid min-h-[60vh] w-full max-w-lg place-items-center rounded-lg bg-[#fff8f0] p-8 text-center font-semibold text-charcoal/70 shadow-warm">
       {children}
     </div>
   );

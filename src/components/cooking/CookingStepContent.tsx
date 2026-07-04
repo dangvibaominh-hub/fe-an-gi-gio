@@ -1,38 +1,55 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
-import type { RecipeStep, TechniqueIcon } from "@/lib/types/recipe";
+import type { RecipeIngredient, RecipeStep } from "@/lib/types/recipe";
 
 const TERM_PATTERN = /{{(.*?)}}/g;
 
 export interface CookingStepContentProps {
   cookingTerms: Record<string, string>;
+  ingredients: RecipeIngredient[];
+  recipeImage: string;
+  recipeImageAlt: string;
   step: RecipeStep;
   stepNumber: number;
 }
 
 export function CookingStepContent({
   cookingTerms,
+  ingredients,
+  recipeImage,
+  recipeImageAlt,
   step,
   stepNumber,
 }: CookingStepContentProps) {
   const [openTermKey, setOpenTermKey] = useState<string | null>(null);
+  const title = getStepTitle(step.content, stepNumber);
 
   return (
-    <article className="mx-auto w-full max-w-3xl">
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="inline-flex items-center gap-2 rounded-full bg-terracotta/10 px-4 py-2 text-sm font-bold uppercase tracking-wide text-terracotta">
-          <TechniqueGlyph technique={step.techniqueIcon} />
-          Bước {stepNumber}
-        </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-sm font-semibold text-charcoal shadow-warm">
-          <ClockGlyph />
-          {step.estimatedMinutes} phút
-        </span>
+    <article className="w-full">
+      <h1 className="text-2xl font-bold leading-tight text-terracotta sm:text-3xl">
+        {title}
+      </h1>
+
+      <p className="mt-3 text-sm font-medium leading-6 text-charcoal/70">
+        Bước {stepNumber} cần khoảng {step.estimatedMinutes} phút. Chuẩn bị sẵn
+        nguyên liệu rồi làm chậm rãi theo hướng dẫn bên dưới.
+      </p>
+
+      <div className="relative mt-5 aspect-[16/10] overflow-hidden rounded-lg bg-charcoal/10">
+        <Image
+          src={recipeImage}
+          alt={recipeImageAlt}
+          fill
+          priority
+          sizes="(max-width: 1023px) 100vw, 620px"
+          className="object-cover"
+        />
       </div>
 
-      <p className="mt-8 text-2xl font-medium leading-relaxed text-charcoal sm:text-3xl sm:leading-relaxed">
+      <div className="mt-5 rounded-lg bg-[#fdebea] p-5 text-sm font-medium leading-6 text-charcoal">
         {renderStepContent({
           content: step.content,
           cookingTerms,
@@ -40,14 +57,33 @@ export function CookingStepContent({
           setOpenTermKey,
           stepId: step.id,
         })}
-      </p>
+      </div>
 
       {step.isTricky ? (
-        <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-terracotta/15 px-4 py-2 text-sm font-semibold text-terracotta">
-          <span aria-hidden="true">⚠</span>
-          Bước này hơi khó — hãy làm chậm và cẩn thận
+        <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-terracotta/15 px-4 py-2 text-xs font-bold text-terracotta">
+          <span aria-hidden="true">!</span>
+          Bước này hơi khó, hãy làm chậm và cẩn thận.
         </p>
       ) : null}
+
+      <section className="mt-5" aria-labelledby="needed-ingredients">
+        <h2
+          id="needed-ingredients"
+          className="text-xs font-bold uppercase tracking-wide text-charcoal/70"
+        >
+          Nguyên liệu cần dùng ở bước này
+        </h2>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {ingredients.slice(0, 3).map((ingredient) => (
+            <span
+              key={ingredient.id}
+              className="inline-flex min-h-7 items-center rounded-full bg-sage/20 px-3 text-xs font-bold text-charcoal"
+            >
+              {formatIngredient(ingredient)}
+            </span>
+          ))}
+        </div>
+      </section>
     </article>
   );
 }
@@ -83,14 +119,14 @@ function renderStepContent({
           type="button"
           aria-expanded={isOpen}
           onClick={() => setOpenTermKey(isOpen ? null : termKey)}
-          className="font-semibold text-terracotta underline decoration-dotted underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+          className="font-bold text-terracotta underline decoration-dotted underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
         >
           {part}
         </button>
         {isOpen ? (
           <span
             role="tooltip"
-            className="absolute bottom-full left-1/2 z-30 mb-2 w-64 -translate-x-1/2 rounded-xl bg-charcoal px-4 py-3 text-left text-sm font-normal leading-5 text-white shadow-xl"
+            className="absolute bottom-full left-1/2 z-30 mb-2 w-64 -translate-x-1/2 rounded-lg bg-charcoal px-4 py-3 text-left text-sm font-normal leading-5 text-white shadow-xl"
           >
             {definition}
           </span>
@@ -100,41 +136,23 @@ function renderStepContent({
   });
 }
 
-function TechniqueGlyph({ technique }: { technique: TechniqueIcon }) {
-  const paths: Record<TechniqueIcon, React.ReactNode> = {
-    dao: <path d="M5 19 19 5M9 5l10 10M5 15l4 4" />,
-    chao: <path d="M4 13h12a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Zm12 0 4-4" />,
-    noi: <path d="M5 9h14l-2 10H7L5 9Zm3-3h8M3 12h2M19 12h2" />,
-    tron: <path d="M7 7a7 7 0 1 1-1 9M7 7H3m4 0v4" />,
-    hap: <path d="M5 11h14l-2 8H7l-2-8Zm3-3h8M9 5c0-2 2-2 2-4M14 5c0-2 2-2 2-4" />,
-  };
+function getStepTitle(content: string, stepNumber: number) {
+  const cleanContent = content.replace(TERM_PATTERN, "$1").trim();
+  const firstSentence = cleanContent.split(/[.!?。]/)[0]?.trim();
 
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="size-5 fill-none stroke-current"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {paths[technique]}
-    </svg>
-  );
+  if (!firstSentence) {
+    return `Bước ${stepNumber}`;
+  }
+
+  return firstSentence.length > 44
+    ? `${firstSentence.slice(0, 42).trim()}...`
+    : firstSentence;
 }
 
-function ClockGlyph() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="size-4 fill-none stroke-current"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </svg>
-  );
+function formatIngredient(ingredient: RecipeIngredient) {
+  const amount = Number.isInteger(ingredient.baseAmount)
+    ? ingredient.baseAmount
+    : ingredient.baseAmount.toFixed(1);
+
+  return `${amount}${ingredient.unit} ${ingredient.name}`;
 }
