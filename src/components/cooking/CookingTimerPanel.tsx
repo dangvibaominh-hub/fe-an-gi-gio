@@ -2,9 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { ButtonSecondary } from "@/components/ui/ButtonSecondary";
-import { IconButton } from "@/components/ui/IconButton";
-
 interface CookingTimerPanelProps {
   timerSeconds: number;
 }
@@ -12,10 +9,15 @@ interface CookingTimerPanelProps {
 type TimerStatus = "idle" | "paused" | "running";
 
 function formatTimer(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  return [
+    String(hours).padStart(2, "0"),
+    String(minutes).padStart(2, "0"),
+    String(seconds).padStart(2, "0"),
+  ].join(":");
 }
 
 export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
@@ -36,7 +38,7 @@ export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
             intervalRef.current = null;
           }
 
-          setStatus("idle");
+          setStatus("paused");
           return 0;
         }
 
@@ -77,54 +79,77 @@ export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
   return (
     <aside
       aria-label="Đồng hồ đếm ngược"
-      className="rounded-2xl border border-terracotta/20 bg-white/90 p-4 shadow-warm backdrop-blur-sm sm:p-5"
+      className="rounded-lg border border-terracotta/15 bg-[#fde9e3] p-5 text-center shadow-warm"
     >
-      <p className="text-sm font-semibold uppercase tracking-wide text-charcoal/60">
-        Thời gian chờ
+      <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-mustard text-charcoal">
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="size-5 fill-none stroke-current"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+      </div>
+
+      <p className="mt-4 text-base font-bold text-charcoal">Thời gian mình</p>
+      <p className="mt-1 text-xs font-medium leading-5 text-charcoal/65">
+        Giữ thời gian để món ngon đúng nhịp.
       </p>
+
       <p
         aria-live="polite"
-        className="mt-2 text-4xl font-bold tabular-nums text-terracotta sm:text-5xl"
+        className="mt-5 rounded-md bg-white px-3 py-3 text-2xl font-bold tabular-nums text-terracotta sm:text-3xl"
       >
         {formatTimer(remainingSeconds)}
       </p>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-4">
         {status === "running" ? (
-          <ButtonSecondary
+          <button
             type="button"
             onClick={handlePause}
-            className="min-h-10 px-4 py-2 text-sm"
+            className="inline-flex min-h-10 w-full items-center justify-center rounded-full bg-terracotta px-4 text-sm font-bold text-white transition hover:bg-terracotta/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
           >
             Tạm dừng
-          </ButtonSecondary>
+          </button>
         ) : (
-          <ButtonSecondary
+          <button
             type="button"
             onClick={handleStart}
-            className="min-h-10 px-4 py-2 text-sm"
+            className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-terracotta px-4 text-sm font-bold text-white transition hover:bg-terracotta/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
           >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="size-3.5 fill-current"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
             {status === "paused" ? "Tiếp tục" : "Bắt đầu"}
-          </ButtonSecondary>
+          </button>
         )}
+      </div>
 
-        <IconButton
-          aria-label="Đặt lại đồng hồ"
-          onClick={handleReset}
-          className="size-10 bg-cream text-charcoal hover:bg-terracotta/10"
-        >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="size-5 fill-none stroke-current"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M4 4v6h6M20 20v-6h-6" />
-            <path d="M5 19a9 9 0 0 1 14-7M19 5a9 9 0 0 1-14 7" />
-          </svg>
-        </IconButton>
+      <button
+        type="button"
+        onClick={handleReset}
+        className="mt-3 text-xs font-semibold text-charcoal/55 underline-offset-4 transition hover:text-terracotta hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+      >
+        Đặt lại
+      </button>
+
+      <div className="mt-5 rounded-md bg-[#fff6df] p-3 text-left">
+        <p className="flex gap-2 text-xs font-medium leading-5 text-charcoal/70">
+          <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-mustard/40 text-charcoal">
+            i
+          </span>
+          Không cần mở bếp đúng giây. Trong lúc đợi, bạn có thể tranh thủ dọn khu
+          vực nấu hoặc chuẩn bị bước tiếp theo nhé.
+        </p>
       </div>
     </aside>
   );

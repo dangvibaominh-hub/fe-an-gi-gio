@@ -13,10 +13,10 @@ export function CookingProgressBar({
     totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
 
   return (
-    <div className="w-full">
-      <div className="mb-2 flex items-center justify-between text-sm font-semibold text-charcoal/70">
+    <div className="mx-auto w-full max-w-md">
+      <div className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase text-charcoal">
         <span>
-          Bước {currentStep}/{totalSteps}
+          Bước {currentStep} / {totalSteps}
         </span>
         <span>{progressPercent}%</span>
       </div>
@@ -26,10 +26,10 @@ export function CookingProgressBar({
         aria-valuemin={1}
         aria-valuemax={totalSteps}
         aria-label={`Tiến độ nấu: bước ${currentStep} trên ${totalSteps}`}
-        className="h-2 overflow-hidden rounded-full bg-terracotta/15"
+        className="h-1.5 overflow-hidden rounded-full bg-terracotta/10"
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-terracotta to-mustard transition-all duration-300"
+          className="h-full rounded-full bg-terracotta transition-all duration-300"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
