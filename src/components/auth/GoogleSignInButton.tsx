@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiRequestError } from "@/lib/api/errors";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import {
   getGoogleClientId,
+  initializeGoogleIdentity,
   loadGoogleIdentityScript,
+  setGoogleIdentityHandlers,
 } from "@/lib/auth/googleOAuth";
 
 interface GoogleSignInButtonProps {
@@ -24,9 +26,54 @@ export function GoogleSignInButton({
   const cancelCheckRef = useRef<number | null>(null);
   const loginAttemptRef = useRef(false);
   const popupObservedRef = useRef(false);
+  const onAuthenticatedRef = useRef(onAuthenticated);
+  const onErrorRef = useRef(onError);
   const [isProcessing, setIsProcessing] = useState(false);
   const { loginWithGoogleToken } = useAuth();
   const clientId = getGoogleClientId();
+
+  const clearCancelCheck = useCallback(() => {
+    if (cancelCheckRef.current !== null) {
+      window.clearTimeout(cancelCheckRef.current);
+      cancelCheckRef.current = null;
+    }
+  }, []);
+
+  const finishAttempt = useCallback(() => {
+    clearCancelCheck();
+    loginAttemptRef.current = false;
+    popupObservedRef.current = false;
+  }, [clearCancelCheck]);
+
+  useEffect(() => {
+    onAuthenticatedRef.current = onAuthenticated;
+  }, [onAuthenticated]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
+    setGoogleIdentityHandlers({
+      onCredential: (credential) => {
+        finishAttempt();
+        void loginWithGoogleToken(credential)
+          .then(() => {
+            onAuthenticatedRef.current?.();
+          })
+          .catch((error: unknown) => {
+            onErrorRef.current?.(
+              error instanceof ApiRequestError
+                ? error.message
+                : "Không thể đăng nhập bằng Google. Vui lòng thử lại.",
+            );
+          })
+          .finally(() => {
+            setIsProcessing(false);
+          });
+      },
+    });
+  }, [finishAttempt, loginWithGoogleToken]);
 
   useEffect(() => {
     if (!clientId || !buttonRef.current || disabled) {
@@ -35,19 +82,6 @@ export function GoogleSignInButton({
 
     let cancelled = false;
     const container = buttonRef.current;
-
-    function clearCancelCheck() {
-      if (cancelCheckRef.current !== null) {
-        window.clearTimeout(cancelCheckRef.current);
-        cancelCheckRef.current = null;
-      }
-    }
-
-    function finishAttempt() {
-      clearCancelCheck();
-      loginAttemptRef.current = false;
-      popupObservedRef.current = false;
-    }
 
     function handleWindowBlur() {
       if (loginAttemptRef.current) {
@@ -68,7 +102,7 @@ export function GoogleSignInButton({
 
         finishAttempt();
         setIsProcessing(false);
-        onError?.("Bạn đã hủy đăng nhập bằng Google.");
+        onErrorRef.current?.("Bạn đã hủy đăng nhập bằng Google.");
       }, 1_000);
     }
 
@@ -81,26 +115,7 @@ export function GoogleSignInButton({
           return;
         }
 
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => {
-            finishAttempt();
-            void loginWithGoogleToken(response.credential)
-              .then(() => {
-                onAuthenticated?.();
-              })
-              .catch((error: unknown) => {
-                onError?.(
-                  error instanceof ApiRequestError
-                    ? error.message
-                    : "Không thể đăng nhập bằng Google. Vui lòng thử lại.",
-                );
-              })
-              .finally(() => {
-                setIsProcessing(false);
-              });
-          },
-        });
+        initializeGoogleIdentity(clientId);
 
         window.google.accounts.id.renderButton(container, {
           click_listener: () => {
@@ -120,7 +135,7 @@ export function GoogleSignInButton({
       .catch(() => {
         if (!cancelled) {
           setIsProcessing(false);
-          onError?.(
+          onErrorRef.current?.(
             "Không tải được Google Sign-In. Vui lòng kiểm tra kết nối và thử lại.",
           );
         }
@@ -136,9 +151,9 @@ export function GoogleSignInButton({
   }, [
     clientId,
     disabled,
+    clearCancelCheck,
+    finishAttempt,
     loginWithGoogleToken,
-    onAuthenticated,
-    onError,
   ]);
 
   if (!clientId) {

@@ -7,7 +7,7 @@
 | Repo | Vị trí theo PRD §20 | Ghi chú |
 |------|---------------------|---------|
 | **Backend** (`be-an-gi-gio`) | **Hoàn tất Phase 0–6** | Phase 6 Admin đã merge; Phase 7 (Phụ Bếp) chưa có |
-| **Frontend** (`fe-an-gi-gio`) | **Hoàn tất Phase 0–6** | `/admin` và các màn hình quản trị đã nối API |
+| **Frontend** (`fe-an-gi-gio`) | **Hoàn tất Phase 0–7** | `/admin`, `Phụ Bếp` widget và các màn hình chính đã nối API |
 
 **Mốc nghiệm thu (PRD §24):**
 
@@ -19,7 +19,7 @@
 | M4 Cooking | Sẵn sàng | **Done** — `/cong-thuc/[slug]/nau`, `/lich-su`, session API |
 | M5 Learning | Sẵn sàng | **Done** — `/ho-so`, personalization tab, InsightCard |
 | M6 Administration | Sẵn sàng | **Done** — recipe CRUD, kiểm duyệt AI, tài khoản, audit log |
-| M7 Assistant | Chưa | Chưa |
+| M7 Assistant | Sẵn sàng | **Done** — widget Phụ Bếp global, auth gate, conversation persistence, message bubbles, quick replies, recipe preview cards |
 
 ---
 
@@ -30,7 +30,7 @@
 | Hạng mục | Trạng thái |
 |----------|------------|
 | API client (`src/lib/api/`) | Done |
-| `NEXT_PUBLIC_API_URL` | Done — `.env.example`; fallback production URL trong `config.ts` |
+| `NEXT_PUBLIC_API_BASE_URL` | Done — `.env.example`; fallback production URL trong `config.ts` |
 | Tách type khỏi `mockRecipes.ts` | Done — `src/lib/types/recipe.ts`; `mockRecipes.ts` đã xóa |
 | `error.tsx` / `not-found.tsx` | Done |
 | Loading/error/retry convention | Done — `loading.tsx` trên catalog routes, `ErrorState`, global `error.tsx` |
@@ -96,7 +96,22 @@
 | Nhật ký quản trị | Done — filter và xem JSON chi tiết |
 | Admin API client/types | Done — token refresh, pagination và contract Phase 6 |
 
-### Giai đoạn 7–8
+### Giai đoạn 7 — Phụ Bếp
+
+| Hạng mục | Trạng thái |
+|----------|------------|
+| Global widget trên mọi route đầy đủ | Done — gắn ở `AppShell` |
+| Ẩn trong Cooking Mode | Done |
+| Auth gate cho guest | Done — dùng chung `AuthModal` |
+| Tạo / lưu / tiếp tục conversation | Done |
+| Lấy lịch sử messages từ backend | Done |
+| Gửi message tới backend | Done |
+| Hiển thị typing/loading state | Done |
+| Hiển thị quick replies | Done |
+| Hiển thị recipe reference card | Done |
+| SSE streaming | Chưa triển khai |
+
+### Giai đoạn 8
 
 Chưa bắt đầu trên frontend.
 

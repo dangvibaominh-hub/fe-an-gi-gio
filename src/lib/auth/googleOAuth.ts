@@ -26,6 +26,13 @@ declare global {
 }
 
 let scriptPromise: Promise<void> | null = null;
+let initializedClientId: string | null = null;
+
+type GoogleIdentityHandlers = {
+  onCredential: (credential: string) => void;
+};
+
+let currentHandlers: GoogleIdentityHandlers | null = null;
 
 export function getGoogleClientId(): string | null {
   const configuredClientId =
@@ -63,4 +70,27 @@ export function loadGoogleIdentityScript(): Promise<void> {
   });
 
   return scriptPromise;
+}
+
+export function setGoogleIdentityHandlers(handlers: GoogleIdentityHandlers) {
+  currentHandlers = handlers;
+}
+
+export function initializeGoogleIdentity(clientId: string): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (window.google?.accounts?.id && initializedClientId === clientId) {
+    return;
+  }
+
+  window.google?.accounts?.id.initialize({
+    client_id: clientId,
+    callback: (response) => {
+      currentHandlers?.onCredential(response.credential);
+    },
+  });
+
+  initializedClientId = clientId;
 }

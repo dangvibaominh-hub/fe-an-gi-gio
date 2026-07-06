@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { PhuBepWidget } from "@/components/phu-bep/PhuBepWidget";
 import { Navbar } from "@/components/layout/Navbar";
 import { PostCookingToast } from "@/components/layout/PostCookingToast";
 
@@ -28,6 +29,7 @@ export function AppShell({ children }: AppShellProps) {
       <Navbar />
       <main className="flex flex-1 flex-col pt-20">{children}</main>
       <PostCookingToast />
+      <PhuBepWidget />
     </>
   );
 }
