@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { RecipeCategory } from "@/lib/constants/recipe";
 
@@ -16,43 +16,47 @@ export interface CategoryTabsProps {
   defaultCategory?: string;
 }
 
-export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
-  // Find the category that matches defaultCategory, or fallback to first category
-  const getInitialCategory = (): CategoryPanel["category"] => {
-    if (!defaultCategory) {
-      return ALL_CATEGORIES_TAB;
-    }
-
-    const matched = panels.find((panel) => panel.category === defaultCategory);
-    if (matched) {
-      return matched.category;
-    }
-
+function getDefaultCategory(
+  panels: readonly CategoryPanel[],
+  defaultCategory?: string,
+): CategoryPanel["category"] {
+  if (!defaultCategory) {
     return ALL_CATEGORIES_TAB;
-  };
+  }
 
-  const [activeCategory, setActiveCategory] = useState<CategoryPanel["category"]>(
-    getInitialCategory,
-  );
+  const matched = panels.find((panel) => panel.category === defaultCategory);
 
-  // Sync activeCategory only when server-provided defaultCategory changes.
-  useEffect(() => {
-    if (!defaultCategory) {
-      return;
-    }
+  return matched?.category ?? ALL_CATEGORIES_TAB;
+}
 
-    const matched = panels.find((panel) => panel.category === defaultCategory);
-    if (matched) {
-      setActiveCategory(matched.category);
-    }
-  }, [defaultCategory, panels]);
+export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
+  const defaultActiveCategory = getDefaultCategory(panels, defaultCategory);
+  const [tabState, setTabState] = useState({
+    activeCategory: defaultActiveCategory,
+    defaultCategory,
+  });
+
+  if (tabState.defaultCategory !== defaultCategory) {
+    setTabState({
+      activeCategory: defaultActiveCategory,
+      defaultCategory,
+    });
+  }
+
+  const activeCategory =
+    tabState.defaultCategory === defaultCategory
+      ? tabState.activeCategory
+      : defaultActiveCategory;
 
   const activePanel = panels.find(
     (panel) => panel.category === activeCategory,
   );
 
   const handleTabChange = (category: CategoryPanel["category"]) => {
-    setActiveCategory(category);
+    setTabState({
+      activeCategory: category,
+      defaultCategory,
+    });
 
     if (typeof window === "undefined") {
       return;

@@ -46,14 +46,6 @@ export function RecipeCard({
         </div>
       </div>
 
-      <div className="absolute -left-6 -top-5 z-30">
-        <DifficultyBadge
-          difficulty={difficulty}
-          variant="overlay"
-          mode="icon"
-        />
-      </div>
-
       <div className="flex min-h-40 flex-col p-5">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.32em] text-denim/70">
           Công thức món
