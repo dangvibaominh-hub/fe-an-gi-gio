@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               Ăn Gì Giờ?
             </p>
             <h1 className="mt-1 text-3xl font-bold text-charcoal">
-              Trung tâm quản trị
+              Admin Dashboard
             </h1>
           </header>
           <AdminNav />
