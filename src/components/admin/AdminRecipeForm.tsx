@@ -58,6 +58,7 @@ const initialForm = (): AdminRecipeWriteInput => ({
 export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
   const router = useRouter();
   const [form, setForm] = useState<AdminRecipeWriteInput>(initialForm);
+  const [slugEdited, setSlugEdited] = useState(Boolean(recipeId));
   const [loading, setLoading] = useState(Boolean(recipeId));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +97,7 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
           })),
           title: recipe.title,
         });
+        setSlugEdited(true);
       })
       .catch((requestError: unknown) => {
         if (!cancelled) setError(getErrorMessage(requestError));
@@ -113,12 +115,13 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
     event.preventDefault();
     setSaving(true);
     setError(null);
+    const cleanedForm = cleanRecipeInput(form);
 
     try {
       if (recipeId) {
-        await updateAdminRecipe(recipeId, form);
+        await updateAdminRecipe(recipeId, cleanedForm);
       } else {
-        await createAdminRecipe(form);
+        await createAdminRecipe(cleanedForm);
       }
       router.push("/admin/cong-thuc");
       router.refresh();
@@ -135,7 +138,8 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
 
   return (
     <form onSubmit={(event) => void submit(event)} className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="sticky top-0 z-10 -mx-4 border-b border-terracotta/10 bg-[#fff8ec]/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+        <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">
             {recipeId ? "Chỉnh sửa công thức" : "Thêm công thức"}
@@ -147,28 +151,37 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
         <div className="flex gap-2">
           <Link
             href="/admin/cong-thuc"
-            className="rounded-xl border border-terracotta/25 bg-white px-5 py-3 font-semibold"
+            className="rounded-lg border border-terracotta/25 bg-white px-5 py-3 font-semibold"
           >
             Hủy
           </Link>
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-terracotta px-5 py-3 font-semibold text-white disabled:opacity-50"
+            className="rounded-lg bg-terracotta px-5 py-3 font-semibold text-white disabled:opacity-50"
           >
             {saving ? "Đang lưu..." : "Lưu công thức"}
           </button>
         </div>
       </div>
+      </div>
 
       {error ? <AdminError message={error} /> : null}
 
       <FormSection title="Thông tin cơ bản">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="grid gap-4 md:grid-cols-2">
           <TextField label="Tên công thức" value={form.title} minLength={5}
-            onChange={(title) => setForm({ ...form, title })} />
+            onChange={(title) => setForm({
+              ...form,
+              slug: slugEdited ? form.slug : slugify(title),
+              title,
+            })} />
           <TextField label="Slug" value={form.slug} pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            onChange={(slug) => setForm({ ...form, slug })} />
+            onChange={(slug) => {
+              setSlugEdited(true);
+              setForm({ ...form, slug: slugify(slug) });
+            }} />
           <label className="md:col-span-2">
             <FieldLabel>Mô tả</FieldLabel>
             <textarea required minLength={10} maxLength={1000} rows={4}
@@ -193,6 +206,26 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
           <SelectField label="Trạng thái" value={form.status}
             onChange={(status) => setForm({ ...form, status: status as AdminRecipeWriteInput["status"] })}
             options={[["DRAFT", "Bản nháp"], ["PUBLISHED", "Xuất bản"], ["HIDDEN", "Ẩn"]]} />
+          </div>
+          <div className="rounded-2xl border border-terracotta/15 bg-charcoal/[0.025] p-3">
+            <div className="aspect-[4/3] overflow-hidden rounded-xl bg-white">
+              {form.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={form.imageAlt || "Ảnh xem trước công thức"}
+                  src={form.image}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="flex size-full items-center justify-center text-sm text-charcoal/45">
+                  Chưa có ảnh
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-xs leading-5 text-charcoal/55">
+              Nên dùng ảnh ngang, đặt trong <span className="font-semibold">/images/recipes/</span> để catalog tải nhanh.
+            </p>
+          </div>
         </div>
       </FormSection>
 
@@ -203,7 +236,7 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
       >
         <div className="space-y-3">
           {form.ingredients.map((ingredient, index) => (
-            <div key={index} className="grid gap-3 rounded-2xl bg-charcoal/[0.03] p-4 md:grid-cols-[2fr_1fr_1fr_2fr_auto]">
+            <div key={index} className="grid gap-3 rounded-2xl border border-charcoal/5 bg-charcoal/[0.025] p-4 md:grid-cols-[2fr_1fr_1fr_2fr_auto]">
               <TextField label="Tên" value={ingredient.name}
                 onChange={(value) => updateIngredient(index, { name: value })} />
               <NumberField label="Lượng" value={ingredient.amount} min={0.01} step="any"
@@ -212,8 +245,14 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
                 onChange={(value) => updateIngredient(index, { unit: value })} />
               <TextField label="Sơ chế" value={ingredient.prepNote} required={false}
                 onChange={(value) => updateIngredient(index, { prepNote: value })} />
-              <RemoveButton disabled={form.ingredients.length === 1}
-                onClick={() => setForm({ ...form, ingredients: form.ingredients.filter((_, itemIndex) => itemIndex !== index) })} />
+              <RowActions
+                canMoveDown={index < form.ingredients.length - 1}
+                canMoveUp={index > 0}
+                disableRemove={form.ingredients.length === 1}
+                onMoveDown={() => setForm({ ...form, ingredients: moveItem(form.ingredients, index, index + 1) })}
+                onMoveUp={() => setForm({ ...form, ingredients: moveItem(form.ingredients, index, index - 1) })}
+                onRemove={() => setForm({ ...form, ingredients: form.ingredients.filter((_, itemIndex) => itemIndex !== index) })}
+              />
             </div>
           ))}
         </div>
@@ -226,11 +265,17 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
       >
         <div className="space-y-3">
           {form.steps.map((step, index) => (
-            <div key={index} className="rounded-2xl bg-charcoal/[0.03] p-4">
+            <div key={index} className="rounded-2xl border border-charcoal/5 bg-charcoal/[0.025] p-4">
               <div className="mb-3 flex items-center justify-between">
                 <p className="font-semibold">Bước {index + 1}</p>
-                <RemoveButton disabled={form.steps.length === 1}
-                  onClick={() => setForm({ ...form, steps: form.steps.filter((_, itemIndex) => itemIndex !== index) })} />
+                <RowActions
+                  canMoveDown={index < form.steps.length - 1}
+                  canMoveUp={index > 0}
+                  disableRemove={form.steps.length === 1}
+                  onMoveDown={() => setForm({ ...form, steps: moveItem(form.steps, index, index + 1) })}
+                  onMoveUp={() => setForm({ ...form, steps: moveItem(form.steps, index, index - 1) })}
+                  onRemove={() => setForm({ ...form, steps: form.steps.filter((_, itemIndex) => itemIndex !== index) })}
+                />
               </div>
               <textarea required minLength={10} maxLength={600} rows={3}
                 aria-label={`Nội dung bước ${index + 1}`}
@@ -245,7 +290,7 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
                   options={[["dao", "Dao"], ["chao", "Chảo"], ["noi", "Nồi"], ["tron", "Trộn"], ["hap", "Hấp"]]} />
                 <NumberField label="Hẹn giờ (giây)" value={step.timerSeconds ?? 0} min={0}
                   onChange={(value) => updateStep(index, { timerSeconds: value > 0 ? value : null })} />
-                <label className="flex items-end gap-2 pb-3 text-sm font-medium">
+                <label className="flex min-h-[72px] items-end gap-2 rounded-xl border border-terracotta/15 bg-white px-3 py-3 text-sm font-medium">
                   <input type="checkbox" checked={step.isTricky}
                     onChange={(event) => updateStep(index, { isTricky: event.target.checked })}
                     className="size-4 accent-terracotta" />
@@ -277,7 +322,7 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
 }
 
 const fieldClass =
-  "mt-1 w-full rounded-xl border border-terracotta/20 bg-white px-3 py-2.5 outline-none transition focus:border-terracotta focus:ring-2 focus:ring-terracotta/10";
+  "mt-1 w-full rounded-lg border border-terracotta/20 bg-white px-3 py-2.5 outline-none transition focus:border-terracotta focus:ring-2 focus:ring-terracotta/10";
 
 function FormSection({ actionLabel, children, onAction, title }: {
   actionLabel?: string;
@@ -286,12 +331,12 @@ function FormSection({ actionLabel, children, onAction, title }: {
   title: string;
 }) {
   return (
-    <section className="rounded-3xl border border-terracotta/15 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-2xl border border-terracotta/15 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <h3 className="text-lg font-bold">{title}</h3>
         {onAction ? (
           <button type="button" onClick={onAction}
-            className="rounded-lg bg-sage/15 px-3 py-2 text-sm font-semibold text-charcoal">
+            className="rounded-lg bg-sage/15 px-3 py-2 text-sm font-semibold text-charcoal transition hover:bg-sage/25">
             {actionLabel}
           </button>
         ) : null}
@@ -332,8 +377,8 @@ function NumberField({ label, min, onChange, step, value }: {
   return (
     <label>
       <FieldLabel>{label}</FieldLabel>
-      <input type="number" required min={min} step={step ?? 1} value={value}
-        onChange={(event) => onChange(Number(event.target.value))} className={fieldClass} />
+      <input type="number" required min={min} step={step ?? 1} value={Number.isNaN(value) ? "" : value}
+        onChange={(event) => onChange(event.target.value === "" ? min : Number(event.target.value))} className={fieldClass} />
     </label>
   );
 }
@@ -356,13 +401,98 @@ function SelectField({ label, onChange, options, value }: {
   );
 }
 
-function RemoveButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+function RowActions({
+  canMoveDown,
+  canMoveUp,
+  disableRemove,
+  onMoveDown,
+  onMoveUp,
+  onRemove,
+}: {
+  canMoveDown: boolean;
+  canMoveUp: boolean;
+  disableRemove: boolean;
+  onMoveDown: () => void;
+  onMoveUp: () => void;
+  onRemove: () => void;
+}) {
   return (
-    <button type="button" disabled={disabled} onClick={onClick}
-      className="self-end rounded-lg px-3 py-2 text-sm font-semibold text-red-600 disabled:opacity-30">
-      Xóa
+    <div className="flex items-end gap-1 self-end">
+      <IconTextButton disabled={!canMoveUp} label="Lên" onClick={onMoveUp} />
+      <IconTextButton disabled={!canMoveDown} label="Xuống" onClick={onMoveDown} />
+      <button type="button" disabled={disableRemove} onClick={onRemove}
+        className="rounded-lg px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-30">
+        Xóa
+      </button>
+    </div>
+  );
+}
+
+function IconTextButton({
+  disabled,
+  label,
+  onClick,
+}: {
+  disabled: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className="rounded-lg border border-terracotta/15 bg-white px-3 py-2 text-sm font-semibold transition hover:bg-terracotta/5 disabled:opacity-30"
+    >
+      {label}
     </button>
   );
+}
+
+function moveItem<T>(items: T[], from: number, to: number) {
+  const next = [...items];
+  const [item] = next.splice(from, 1);
+  if (item !== undefined) {
+    next.splice(to, 0, item);
+  }
+
+  return next;
+}
+
+function cleanRecipeInput(input: AdminRecipeWriteInput): AdminRecipeWriteInput {
+  return {
+    ...input,
+    description: input.description.trim(),
+    image: input.image.trim(),
+    imageAlt: input.imageAlt.trim(),
+    ingredients: input.ingredients.map((ingredient) => ({
+      ...ingredient,
+      name: ingredient.name.trim(),
+      prepNote: ingredient.prepNote.trim(),
+      unit: ingredient.unit.trim(),
+    })),
+    slug: slugify(input.slug),
+    steps: input.steps.map((step) => ({
+      ...step,
+      content: step.content.trim(),
+      timerSeconds: step.timerSeconds && step.timerSeconds > 0
+        ? step.timerSeconds
+        : null,
+    })),
+    title: input.title.trim(),
+  };
+}
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
 }
 
 function getErrorMessage(error: unknown) {
