@@ -236,7 +236,7 @@ export function AuthModal({
           <>
             <div className="my-6 flex items-center gap-4" aria-hidden="true">
               <span className="h-px flex-1 bg-terracotta/25" />
-              <span className="text-sm font-medium text-charcoal/60">
+              <span className="text-sm font-medium text-charcoal/55">
                 hoặc
               </span>
               <span className="h-px flex-1 bg-terracotta/25" />

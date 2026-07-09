@@ -125,8 +125,9 @@ export function GoogleSignInButton({
             setIsProcessing(true);
           },
           locale: "vi",
+          shape: "pill",
           size: "large",
-          text: "continue_with",
+          text: "signin_with",
           theme: "outline",
           type: "standard",
           width: container.offsetWidth || 320,
@@ -166,10 +167,10 @@ export function GoogleSignInButton({
         ref={buttonRef}
         aria-hidden={isProcessing}
         className={[
-          "flex min-h-12 w-full justify-center transition-opacity",
+          "flex min-h-12 w-full items-center justify-center overflow-hidden rounded-full bg-white transition duration-200",
           disabled || isProcessing
             ? "pointer-events-none opacity-0"
-            : "opacity-100",
+            : "opacity-100 hover:-translate-y-0.5",
         ].join(" ")}
       />
 
@@ -177,7 +178,7 @@ export function GoogleSignInButton({
         <div
           role="status"
           aria-live="polite"
-          className="absolute inset-0 flex min-h-12 items-center justify-center gap-3 rounded-md border border-[#747775] bg-white px-4 text-sm font-medium text-[#1f1f1f]"
+          className="absolute inset-0 flex min-h-12 items-center justify-center gap-3 rounded-full border border-terracotta/25 bg-white px-4 text-sm font-semibold text-charcoal"
         >
           <span
             aria-hidden="true"
