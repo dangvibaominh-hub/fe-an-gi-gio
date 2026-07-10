@@ -7,6 +7,7 @@ import { CategoryCard } from "@/components/home/CategoryCard";
 import { IngredientPillInput } from "@/components/home/IngredientPillInput";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import LogoLoop from "@/components/ui/LogoLoop";
+import RotatingText from "@/components/ui/RotatingText";
 import { Toast } from "@/components/ui/Toast";
 import {
   buildResultsHref,
@@ -15,7 +16,7 @@ import {
   saveSearchSession,
 } from "@/lib/searchSession";
 
-const DEFAULT_INGREDIENTS = ["Thịt heo", "Cà rốt", "Nấm hương"];
+const DEFAULT_INGREDIENTS = ["Cà rốt", "Rau muống", "Tỏi"];
 
 const TODAY_SUGGESTIONS = ["Thịt kho tiêu", "Canh rau ngót", "Đậu hũ dồn thịt"];
 
@@ -54,13 +55,19 @@ const CATEGORIES = [
 
 export function HomePageClient() {
   const router = useRouter();
-  const [ingredients, setIngredients] = useState(() => {
-    const stored = readSearchIngredients();
-
-    return stored.length > 0 ? stored : DEFAULT_INGREDIENTS;
-  });
+  const [ingredients, setIngredients] = useState<string[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const stored = readSearchIngredients();
+
+      setIngredients(stored.length > 0 ? stored : DEFAULT_INGREDIENTS);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     if (!errorMessage) {
@@ -81,7 +88,7 @@ export function HomePageClient() {
   }
 
   function handleSearch() {
-    const nextIngredients = dedupeIngredients(ingredients);
+    const nextIngredients = dedupeIngredients(ingredients ?? []);
 
     if (nextIngredients.length === 0) {
       setErrorMessage("Hãy nhập ít nhất một nguyên liệu trước khi tìm món.");
@@ -97,14 +104,39 @@ export function HomePageClient() {
     <>
       <section className="mx-auto w-full max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pb-14">
         <div className="max-w-4xl">
-          <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
-            Bạn đang có gì trong bếp?
+          <h1 className="flex flex-wrap items-center gap-x-4 gap-y-3 text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
+            <span>Hôm nay nấu với</span>
+            <RotatingText
+              texts={["trứng", "thịt bò", "rau muống", "cà chua"]}
+              mainClassName="text-rotate-chip justify-center overflow-hidden rounded-2xl bg-terracotta px-4 py-1 text-white sm:px-5 sm:py-1.5"
+              splitLevelClassName="overflow-hidden pb-1"
+              animatePresenceMode="popLayout"
+              staggerFrom="last"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "-120%" }}
+              staggerDuration={0.018}
+              transition={{
+                type: "spring",
+                damping: 36,
+                stiffness: 280,
+                mass: 0.85,
+              }}
+              rotationInterval={2000}
+            />
           </h1>
           <div className="mt-8">
-            <IngredientPillInput
-              ingredients={ingredients}
-              onIngredientsChange={handleIngredientsChange}
-            />
+            {ingredients ? (
+              <IngredientPillInput
+                ingredients={ingredients}
+                onIngredientsChange={handleIngredientsChange}
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                className="min-h-32 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5"
+              />
+            )}
           </div>
         </div>
       </section>
