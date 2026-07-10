@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { CategoryCard } from "@/components/home/CategoryCard";
 import { IngredientPillInput } from "@/components/home/IngredientPillInput";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
+import LogoLoop from "@/components/ui/LogoLoop";
 import { Toast } from "@/components/ui/Toast";
 import {
   buildResultsHref,
@@ -60,42 +61,6 @@ export function HomePageClient() {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showPrev, setShowPrev] = useState(false);
-  const [showNext, setShowNext] = useState(true);
-
-  const checkScrollLimits = () => {
-    const el = scrollRef.current;
-    if (el) {
-      setShowPrev(el.scrollLeft > 5);
-      setShowNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 5);
-    }
-  };
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) {
-      checkScrollLimits();
-      el.addEventListener("scroll", checkScrollLimits);
-      window.addEventListener("resize", checkScrollLimits);
-      return () => {
-        el.removeEventListener("scroll", checkScrollLimits);
-        window.removeEventListener("resize", checkScrollLimits);
-      };
-    }
-  }, []);
-
-  const handleScroll = (direction: "left" | "right") => {
-    const el = scrollRef.current;
-    if (el) {
-      const scrollAmount = el.clientWidth;
-      el.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
 
   useEffect(() => {
     if (!errorMessage) {
@@ -177,42 +142,23 @@ export function HomePageClient() {
           >
             Khám phá theo cách chế biến
           </h2>
-          {/* Navigation Controls */}
-          <div className="hidden items-center gap-2 sm:flex">
-            <button
-              type="button"
-              disabled={!showPrev}
-              onClick={() => handleScroll("left")}
-              aria-label="Danh mục trước"
-              className="flex size-10 items-center justify-center rounded-full border border-terracotta/20 bg-white text-charcoal shadow-sm transition hover:bg-terracotta hover:text-white hover:shadow disabled:pointer-events-none disabled:opacity-40"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="size-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              disabled={!showNext}
-              onClick={() => handleScroll("right")}
-              aria-label="Danh mục sau"
-              className="flex size-10 items-center justify-center rounded-full border border-terracotta/20 bg-white text-charcoal shadow-sm transition hover:bg-terracotta hover:text-white hover:shadow disabled:pointer-events-none disabled:opacity-40"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="size-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          </div>
         </div>
 
-        <div className="relative mt-7">
-          <div
-            ref={scrollRef}
-            className="-mx-4 flex gap-5 overflow-x-auto px-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-none sm:mx-0 sm:px-0"
-          >
-            {CATEGORIES.map((category) => (
-              <CategoryCard key={category.title} {...category} />
-            ))}
-          </div>
+        <div className="-mx-4 mt-7 h-[300px] overflow-hidden sm:mx-0 sm:h-[315px] lg:h-[340px]">
+          <LogoLoop
+            logos={CATEGORIES.map((category) => ({
+              node: <CategoryCard {...category} variant="loop" />,
+              title: category.title,
+              ariaLabel: `Khám phá ${category.title}`,
+            }))}
+            speed={70}
+            direction="left"
+            logoHeight={1}
+            gap={20}
+            hoverSpeed={0}
+            ariaLabel="Danh mục cách chế biến"
+            className="category-card-loop"
+          />
         </div>
       </section>
 
