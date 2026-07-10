@@ -39,9 +39,25 @@ export type CookingHistorySort =
 
 export type FeedbackIssue =
   | "cutting-meat-hard"
+  | "hard-to-follow-steps"
+  | "taste-not-right"
   | "missing-ingredients"
   | "oil-splatter"
-  | "took-longer-than-expected";
+  | "took-longer-than-expected"
+  | "too-oily"
+  | "not-crispy"
+  | "pan-sticking-or-burning"
+  | "vegetables-too-soft"
+  | "soup-too-bland-or-salty"
+  | "ingredients-overcooked"
+  | "steamed-unevenly"
+  | "fishy-smell"
+  | "too-dry"
+  | "too-sweet"
+  | "texture-failed"
+  | "temperature-control-hard"
+  | "bland-flavor"
+  | "lacks-protein";
 
 export interface SubmitFeedbackRequest {
   issues?: FeedbackIssue[];

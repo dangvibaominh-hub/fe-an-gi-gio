@@ -311,6 +311,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
         onSuccess={handleFeedbackSuccess}
+        recipeCategory={recipe.category}
       />
     </CookingModeShell>
   );
