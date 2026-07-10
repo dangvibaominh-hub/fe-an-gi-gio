@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import {
+  CookingPot,
+  Microwave,
+  Soup,
+  type LucideIcon,
+} from "lucide-react";
 
-import type { RecipeStep, TechniqueIcon } from "@/lib/types/recipe";
+import type { RecipeStep } from "@/lib/types/recipe";
 
 export interface StepListProps {
   cookingTerms: Record<string, string>;
@@ -46,7 +52,7 @@ export function StepList({ cookingTerms, steps }: StepListProps) {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="inline-flex items-center gap-2 font-bold uppercase tracking-wide text-charcoal">
-                  <TechniqueGlyph technique={step.techniqueIcon} />
+                  <StepTechniqueIcon stepIndex={stepIndex} />
                   Bước {stepIndex + 1}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-terracotta/10 px-3 py-1.5 text-sm font-semibold text-charcoal">
@@ -129,26 +135,16 @@ function renderStepContent({
   });
 }
 
-function TechniqueGlyph({ technique }: { technique: TechniqueIcon }) {
-  const paths: Record<TechniqueIcon, React.ReactNode> = {
-    dao: <path d="M5 19 19 5M9 5l10 10M5 15l4 4" />,
-    chao: <path d="M4 13h12a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Zm12 0 4-4" />,
-    noi: <path d="M5 9h14l-2 10H7L5 9Zm3-3h8M3 12h2M19 12h2" />,
-    tron: <path d="M7 7a7 7 0 1 1-1 9M7 7H3m4 0v4" />,
-    hap: <path d="M5 11h14l-2 8H7l-2-8Zm3-3h8M9 5c0-2 2-2 2-4M14 5c0-2 2-2 2-4" />,
-  };
+function StepTechniqueIcon({ stepIndex }: { stepIndex: number }) {
+  const icons: LucideIcon[] = [Soup, Microwave, CookingPot];
+  const Icon = icons[stepIndex] ?? CookingPot;
 
   return (
-    <svg
+    <Icon
       aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="size-5 fill-none stroke-terracotta"
+      className="size-5 shrink-0 text-terracotta"
       strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {paths[technique]}
-    </svg>
+    />
   );
 }
 
