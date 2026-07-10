@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BookmarkButton } from "@/components/recipe/BookmarkButton";
 import { IconButton } from "@/components/ui/IconButton";
@@ -17,6 +17,7 @@ export function RecipeActions({
 }: RecipeActionsProps) {
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!toastMessage) {
@@ -31,6 +32,30 @@ export function RecipeActions({
     return () => window.clearTimeout(timeoutId);
   }, [toastMessage]);
 
+  useEffect(() => {
+    if (!isShareMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        shareMenuRef.current?.contains(event.target as Node)
+      ) {
+        return;
+      }
+
+      setIsShareMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () =>
+      document.removeEventListener(
+        "pointerdown",
+        handlePointerDown,
+      );
+  }, [isShareMenuOpen]);
+
   function copyRecipeLink() {
     setToastMessage("Đã sao chép liên kết");
     setIsShareMenuOpen(false);
@@ -38,6 +63,12 @@ export function RecipeActions({
     void navigator.clipboard
       .writeText(window.location.href)
       .catch(() => setToastMessage("Không thể sao chép liên kết"));
+  }
+
+  function shareViaZalo() {
+    const shareUrl = `https://zalo.me/share?u=${encodeURIComponent(window.location.href)}`;
+    setIsShareMenuOpen(false);
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -48,7 +79,7 @@ export function RecipeActions({
           recipeTitle={recipeTitle}
         />
 
-        <div className="relative">
+        <div ref={shareMenuRef} className="relative">
           <IconButton
             aria-label="Chia sẻ công thức"
             aria-expanded={isShareMenuOpen}
@@ -61,19 +92,14 @@ export function RecipeActions({
           </IconButton>
 
           {isShareMenuOpen ? (
-            <div className="absolute right-0 top-14 z-40 w-60 rounded-2xl border border-terracotta/20 bg-white p-2 text-sm text-charcoal shadow-xl">
+            <div className="absolute bottom-14 right-0 z-40 grid w-max max-w-[calc(100vw-2rem)] rounded-2xl border border-terracotta/20 bg-white p-2 text-sm text-charcoal shadow-xl">
               <ShareMenuButton onClick={copyRecipeLink}>
-                Sao chép liên kết
+                <CopyGlyph />
+                Sao chép link
               </ShareMenuButton>
-              <ShareMenuButton
-                onClick={() => setIsShareMenuOpen(false)}
-              >
-                Chia sẻ qua Messenger
-              </ShareMenuButton>
-              <ShareMenuButton
-                onClick={() => setIsShareMenuOpen(false)}
-              >
-                Chia sẻ qua Zalo
+              <ShareMenuButton onClick={shareViaZalo}>
+                <ZaloGlyph />
+                Chia sẻ Zalo
               </ShareMenuButton>
             </div>
           ) : null}
@@ -106,10 +132,37 @@ function ShareMenuButton({
     <button
       type="button"
       onClick={onClick}
-      className="w-full rounded-xl px-4 py-3 text-left font-medium transition hover:bg-terracotta/10 focus-visible:outline-2 focus-visible:outline-terracotta"
+      className="inline-flex items-center whitespace-nowrap rounded-xl px-4 py-3 text-left font-medium transition hover:bg-terracotta/10 focus-visible:outline-2 focus-visible:outline-terracotta"
     >
       {children}
     </button>
+  );
+}
+
+function CopyGlyph() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="mr-2 size-4 shrink-0 fill-none stroke-current"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function ZaloGlyph() {
+  return (
+    <span
+      aria-hidden="true"
+      className="mr-2 inline-flex size-4 shrink-0 items-center justify-center rounded border border-charcoal text-[8px] font-bold leading-none text-charcoal"
+    >
+      Z
+    </span>
   );
 }
 
