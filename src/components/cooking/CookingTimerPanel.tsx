@@ -79,7 +79,7 @@ export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
   return (
     <aside
       aria-label="Đồng hồ đếm ngược"
-      className="rounded-lg border border-terracotta/15 bg-[#fde9e3] p-5 text-center shadow-warm"
+      className="h-full rounded-lg border border-terracotta/15 bg-[#fde9e3] p-4 text-center shadow-warm lg:p-5"
     >
       <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-mustard text-charcoal">
         <svg
@@ -95,14 +95,11 @@ export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
         </svg>
       </div>
 
-      <p className="mt-4 text-base font-bold text-charcoal">Thời gian mình</p>
-      <p className="mt-1 text-xs font-medium leading-5 text-charcoal/65">
-        Giữ thời gian để món ngon đúng nhịp.
-      </p>
+      <p className="mt-4 text-base font-bold text-charcoal">Theo dõi thời gian nấu</p>
 
       <p
         aria-live="polite"
-        className="mt-5 rounded-md bg-white px-3 py-3 text-2xl font-bold tabular-nums text-terracotta sm:text-3xl"
+        className="mt-4 rounded-md bg-white px-3 py-3 text-2xl font-bold tabular-nums text-terracotta sm:text-3xl"
       >
         {formatTimer(remainingSeconds)}
       </p>
@@ -141,16 +138,6 @@ export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
       >
         Đặt lại
       </button>
-
-      <div className="mt-5 rounded-md bg-[#fff6df] p-3 text-left">
-        <p className="flex gap-2 text-xs font-medium leading-5 text-charcoal/70">
-          <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-mustard/40 text-charcoal">
-            i
-          </span>
-          Không cần mở bếp đúng giây. Trong lúc đợi, bạn có thể tranh thủ dọn khu
-          vực nấu hoặc chuẩn bị bước tiếp theo nhé.
-        </p>
-      </div>
     </aside>
   );
 }

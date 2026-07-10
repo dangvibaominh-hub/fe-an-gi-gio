@@ -1,11 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { CategoryCard } from "@/components/home/CategoryCard";
 import { IngredientPillInput } from "@/components/home/IngredientPillInput";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
+import LogoLoop from "@/components/ui/LogoLoop";
+import RotatingText from "@/components/ui/RotatingText";
 import { Toast } from "@/components/ui/Toast";
 import {
   buildResultsHref,
@@ -13,89 +16,40 @@ import {
   readSearchIngredients,
   saveSearchSession,
 } from "@/lib/searchSession";
+import { RECIPE_CATEGORIES } from "@/lib/constants/recipe";
+import type { RecipeSummary } from "@/lib/types/recipe";
 
-const DEFAULT_INGREDIENTS = ["Thịt heo", "Cà rốt", "Nấm hương"];
+const DEFAULT_INGREDIENTS = ["Cà rốt", "Rau muống", "Tỏi"];
 
-const TODAY_SUGGESTIONS = ["Thịt kho tiêu", "Canh rau ngót", "Đậu hũ dồn thịt"];
+interface HomePageClientProps {
+  recipes: RecipeSummary[];
+}
 
-const CATEGORIES = [
-  {
-    title: "Món xào",
-    imageSrc: "/images/categories/mon-xao.png",
-    imageAlt: "Đĩa mì xào rau xanh",
-  },
-  {
-    title: "Món canh",
-    imageSrc: "/images/categories/mon-canh.png",
-    imageAlt: "Bát canh nóng với thịt và rau củ",
-  },
-  {
-    title: "Món chiên",
-    imageSrc: "/images/categories/mon-chien.png",
-    imageAlt: "Đĩa chả giò chiên vàng",
-  },
-  {
-    title: "Món hấp",
-    imageSrc: "/images/categories/mon-hap.png",
-    imageAlt: "Xửng bánh bao hấp nóng",
-  },
-  {
-    title: "Món chay",
-    imageSrc: "/images/categories/mon-chay.png",
-    imageAlt: "Đĩa đậu hũ kho chay với rau củ",
-  },
-  {
-    title: "Tráng miệng",
-    imageSrc: "/images/categories/trang-mieng.png",
-    imageAlt: "Ly chè ba màu nước cốt dừa thơm ngon",
-  },
-] as const;
-
-export function HomePageClient() {
+export function HomePageClient({ recipes }: HomePageClientProps) {
   const router = useRouter();
-  const [ingredients, setIngredients] = useState(() => {
-    const stored = readSearchIngredients();
-
-    return stored.length > 0 ? stored : DEFAULT_INGREDIENTS;
-  });
+  const [ingredients, setIngredients] = useState<string[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const suggestedRecipes = recipes.slice(0, 4);
+  const categoryCards = RECIPE_CATEGORIES.map((category) => {
+    const recipe = recipes.find((item) => item.category === category);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showPrev, setShowPrev] = useState(false);
-  const [showNext, setShowNext] = useState(true);
-
-  const checkScrollLimits = () => {
-    const el = scrollRef.current;
-    if (el) {
-      setShowPrev(el.scrollLeft > 5);
-      setShowNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 5);
-    }
-  };
+    return {
+      title: category,
+      imageSrc: recipe?.image ?? "/images/categories/mon-xao.png",
+      imageAlt: recipe?.imageAlt ?? `Ảnh đại diện danh mục ${category}`,
+    };
+  });
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (el) {
-      checkScrollLimits();
-      el.addEventListener("scroll", checkScrollLimits);
-      window.addEventListener("resize", checkScrollLimits);
-      return () => {
-        el.removeEventListener("scroll", checkScrollLimits);
-        window.removeEventListener("resize", checkScrollLimits);
-      };
-    }
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      const stored = readSearchIngredients();
 
-  const handleScroll = (direction: "left" | "right") => {
-    const el = scrollRef.current;
-    if (el) {
-      const scrollAmount = el.clientWidth;
-      el.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
+      setIngredients(stored.length > 0 ? stored : DEFAULT_INGREDIENTS);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     if (!errorMessage) {
@@ -116,7 +70,7 @@ export function HomePageClient() {
   }
 
   function handleSearch() {
-    const nextIngredients = dedupeIngredients(ingredients);
+    const nextIngredients = dedupeIngredients(ingredients ?? []);
 
     if (nextIngredients.length === 0) {
       setErrorMessage("Hãy nhập ít nhất một nguyên liệu trước khi tìm món.");
@@ -132,14 +86,39 @@ export function HomePageClient() {
     <>
       <section className="mx-auto w-full max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pb-14">
         <div className="max-w-4xl">
-          <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
-            Bạn đang có gì trong bếp?
+          <h1 className="flex flex-wrap items-center gap-x-4 gap-y-3 text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
+            <span>Hôm nay nấu với</span>
+            <RotatingText
+              texts={["trứng", "thịt bò", "rau muống", "cà chua"]}
+              mainClassName="text-rotate-chip justify-center overflow-hidden rounded-2xl bg-terracotta px-4 py-1 text-white sm:px-5 sm:py-1.5"
+              splitLevelClassName="overflow-hidden pb-1"
+              animatePresenceMode="popLayout"
+              staggerFrom="last"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "-120%" }}
+              staggerDuration={0.018}
+              transition={{
+                type: "spring",
+                damping: 36,
+                stiffness: 280,
+                mass: 0.85,
+              }}
+              rotationInterval={2000}
+            />
           </h1>
           <div className="mt-8">
-            <IngredientPillInput
-              ingredients={ingredients}
-              onIngredientsChange={handleIngredientsChange}
-            />
+            {ingredients ? (
+              <IngredientPillInput
+                ingredients={ingredients}
+                onIngredientsChange={handleIngredientsChange}
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                className="min-h-32 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5"
+              />
+            )}
           </div>
         </div>
       </section>
@@ -150,18 +129,19 @@ export function HomePageClient() {
       >
         <h2
           id="today-suggestions-heading"
-          className="text-base font-semibold text-charcoal"
+          className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl text-terracotta"
         >
           Gợi ý hôm nay
         </h2>
         <div className="mt-3 flex flex-wrap gap-3">
-          {TODAY_SUGGESTIONS.map((suggestion) => (
-            <span
-              key={suggestion}
-              className="rounded-full bg-terracotta/10 px-5 py-2.5 text-sm font-semibold text-charcoal sm:text-base"
+          {suggestedRecipes.map((recipe) => (
+            <Link
+              key={recipe.slug}
+              href={`/cong-thuc/${recipe.slug}`}
+              className="rounded-full bg-terracotta/10 px-5 py-2.5 text-sm font-semibold text-charcoal transition hover:bg-terracotta hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta sm:text-base"
             >
-              {suggestion}
-            </span>
+              {recipe.title}
+            </Link>
           ))}
         </div>
       </section>
@@ -173,46 +153,27 @@ export function HomePageClient() {
         <div className="flex items-center justify-between">
           <h2
             id="categories-heading"
-            className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl"
+            className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl text-terracotta"
           >
             Khám phá theo cách chế biến
           </h2>
-          {/* Navigation Controls */}
-          <div className="hidden items-center gap-2 sm:flex">
-            <button
-              type="button"
-              disabled={!showPrev}
-              onClick={() => handleScroll("left")}
-              aria-label="Danh mục trước"
-              className="flex size-10 items-center justify-center rounded-full border border-terracotta/20 bg-white text-charcoal shadow-sm transition hover:bg-terracotta hover:text-white hover:shadow disabled:pointer-events-none disabled:opacity-40"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="size-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              disabled={!showNext}
-              onClick={() => handleScroll("right")}
-              aria-label="Danh mục sau"
-              className="flex size-10 items-center justify-center rounded-full border border-terracotta/20 bg-white text-charcoal shadow-sm transition hover:bg-terracotta hover:text-white hover:shadow disabled:pointer-events-none disabled:opacity-40"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="size-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          </div>
         </div>
 
-        <div className="relative mt-7">
-          <div
-            ref={scrollRef}
-            className="-mx-4 flex gap-5 overflow-x-auto px-4 pb-4 snap-x snap-mandatory scroll-smooth scrollbar-none sm:mx-0 sm:px-0"
-          >
-            {CATEGORIES.map((category) => (
-              <CategoryCard key={category.title} {...category} />
-            ))}
-          </div>
+        <div className="-mx-4 mt-7 h-[300px] overflow-hidden sm:mx-0 sm:h-[315px] lg:h-[340px]">
+          <LogoLoop
+            logos={categoryCards.map((category) => ({
+              node: <CategoryCard {...category} variant="loop" />,
+              title: category.title,
+              ariaLabel: `Khám phá ${category.title}`,
+            }))}
+            speed={70}
+            direction="left"
+            logoHeight={1}
+            gap={20}
+            hoverSpeed={0}
+            ariaLabel="Danh mục cách chế biến"
+            className="category-card-loop"
+          />
         </div>
       </section>
 
