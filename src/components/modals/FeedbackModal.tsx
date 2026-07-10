@@ -6,14 +6,16 @@ import { ModalBase } from "@/components/modals/ModalBase";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import { submitCookingFeedback } from "@/lib/api/feedback";
 import { ApiRequestError } from "@/lib/api/errors";
-import { FEEDBACK_ISSUE_OPTIONS } from "@/lib/constants/feedback";
+import { getFeedbackIssueOptionsForCategory } from "@/lib/constants/feedback";
 import type { FeedbackIssue } from "@/lib/types/cookingSession";
+import type { RecipeCategory } from "@/lib/constants/recipe";
 
 export interface FeedbackModalProps {
   cookingSessionId: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  recipeCategory: RecipeCategory;
 }
 
 export function FeedbackModal({
@@ -21,6 +23,7 @@ export function FeedbackModal({
   isOpen,
   onClose,
   onSuccess,
+  recipeCategory,
 }: FeedbackModalProps) {
   if (!isOpen) {
     return null;
@@ -36,6 +39,7 @@ export function FeedbackModal({
         key={cookingSessionId}
         cookingSessionId={cookingSessionId}
         onSuccess={onSuccess}
+        recipeCategory={recipeCategory}
       />
     </ModalBase>
   );
@@ -44,14 +48,21 @@ export function FeedbackModal({
 interface FeedbackFormProps {
   cookingSessionId: string;
   onSuccess: () => void;
+  recipeCategory: RecipeCategory;
 }
 
-function FeedbackForm({ cookingSessionId, onSuccess }: FeedbackFormProps) {
+function FeedbackForm({
+  cookingSessionId,
+  onSuccess,
+  recipeCategory,
+}: FeedbackFormProps) {
   const [rating, setRating] = useState<number | null>(null);
   const [selectedIssues, setSelectedIssues] = useState<FeedbackIssue[]>([]);
   const [note, setNote] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const feedbackIssueOptions =
+    getFeedbackIssueOptionsForCategory(recipeCategory);
 
   function toggleIssue(issue: FeedbackIssue) {
     setSelectedIssues((currentIssues) => {
@@ -141,7 +152,7 @@ function FeedbackForm({ cookingSessionId, onSuccess }: FeedbackFormProps) {
           Bạn gặp khó khăn gì không?
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {FEEDBACK_ISSUE_OPTIONS.map(({ label, value }) => {
+          {feedbackIssueOptions.map(({ label, value }) => {
             const isSelected = selectedIssues.includes(value);
 
             return (

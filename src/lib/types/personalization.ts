@@ -1,3 +1,5 @@
+import type { FeedbackIssue } from "@/lib/types/cookingSession";
+
 export interface PersonalizationSignals {
   preferEasyRecipes: number;
   preferIngredientFit: number;
@@ -5,12 +7,7 @@ export interface PersonalizationSignals {
   preferTechniqueGuidance: number;
 }
 
-export interface FeedbackIssueCounts {
-  "cutting-meat-hard": number;
-  "missing-ingredients": number;
-  "oil-splatter": number;
-  "took-longer-than-expected": number;
-}
+export type FeedbackIssueCounts = Partial<Record<FeedbackIssue, number>>;
 
 export interface PersonalizationInsight {
   averageRating: number;
