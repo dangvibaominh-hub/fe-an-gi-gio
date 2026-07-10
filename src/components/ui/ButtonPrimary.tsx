@@ -18,10 +18,10 @@ export type ButtonPrimaryProps =
   | ButtonPrimaryLinkProps;
 
 const BUTTON_PRIMARY_CLASSES = [
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-terracotta to-mustard px-7 py-3 font-semibold text-white shadow-warm transition duration-200 ease-out",
+  "inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3 font-semibold text-white shadow-warm transition duration-200 ease-out",
   "hover:scale-[1.02] hover:brightness-105 active:scale-[0.99] active:brightness-95",
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta",
-  "disabled:pointer-events-none disabled:opacity-40 disabled:shadow-none",
+  "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none",
 ].join(" ");
 
 export function ButtonPrimary(props: ButtonPrimaryProps) {

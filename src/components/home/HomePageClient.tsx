@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { CategoryCard } from "@/components/home/CategoryCard";
@@ -15,49 +16,30 @@ import {
   readSearchIngredients,
   saveSearchSession,
 } from "@/lib/searchSession";
+import { RECIPE_CATEGORIES } from "@/lib/constants/recipe";
+import type { RecipeSummary } from "@/lib/types/recipe";
 
 const DEFAULT_INGREDIENTS = ["Cà rốt", "Rau muống", "Tỏi"];
 
-const TODAY_SUGGESTIONS = ["Thịt kho tiêu", "Canh rau ngót", "Đậu hũ dồn thịt"];
+interface HomePageClientProps {
+  recipes: RecipeSummary[];
+}
 
-const CATEGORIES = [
-  {
-    title: "Món xào",
-    imageSrc: "/images/categories/mon-xao.png",
-    imageAlt: "Đĩa mì xào rau xanh",
-  },
-  {
-    title: "Món canh",
-    imageSrc: "/images/categories/mon-canh.png",
-    imageAlt: "Bát canh nóng với thịt và rau củ",
-  },
-  {
-    title: "Món chiên",
-    imageSrc: "/images/categories/mon-chien.png",
-    imageAlt: "Đĩa chả giò chiên vàng",
-  },
-  {
-    title: "Món hấp",
-    imageSrc: "/images/categories/mon-hap.png",
-    imageAlt: "Xửng bánh bao hấp nóng",
-  },
-  {
-    title: "Món chay",
-    imageSrc: "/images/categories/mon-chay.png",
-    imageAlt: "Đĩa đậu hũ kho chay với rau củ",
-  },
-  {
-    title: "Tráng miệng",
-    imageSrc: "/images/categories/trang-mieng.png",
-    imageAlt: "Ly chè ba màu nước cốt dừa thơm ngon",
-  },
-] as const;
-
-export function HomePageClient() {
+export function HomePageClient({ recipes }: HomePageClientProps) {
   const router = useRouter();
   const [ingredients, setIngredients] = useState<string[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const suggestedRecipes = recipes.slice(0, 4);
+  const categoryCards = RECIPE_CATEGORIES.map((category) => {
+    const recipe = recipes.find((item) => item.category === category);
+
+    return {
+      title: category,
+      imageSrc: recipe?.image ?? "/images/categories/mon-xao.png",
+      imageAlt: recipe?.imageAlt ?? `Ảnh đại diện danh mục ${category}`,
+    };
+  });
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -147,18 +129,19 @@ export function HomePageClient() {
       >
         <h2
           id="today-suggestions-heading"
-          className="text-base font-semibold text-charcoal"
+          className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl text-terracotta"
         >
           Gợi ý hôm nay
         </h2>
         <div className="mt-3 flex flex-wrap gap-3">
-          {TODAY_SUGGESTIONS.map((suggestion) => (
-            <span
-              key={suggestion}
-              className="rounded-full bg-terracotta/10 px-5 py-2.5 text-sm font-semibold text-charcoal sm:text-base"
+          {suggestedRecipes.map((recipe) => (
+            <Link
+              key={recipe.slug}
+              href={`/cong-thuc/${recipe.slug}`}
+              className="rounded-full bg-terracotta/10 px-5 py-2.5 text-sm font-semibold text-charcoal transition hover:bg-terracotta hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta sm:text-base"
             >
-              {suggestion}
-            </span>
+              {recipe.title}
+            </Link>
           ))}
         </div>
       </section>
@@ -170,7 +153,7 @@ export function HomePageClient() {
         <div className="flex items-center justify-between">
           <h2
             id="categories-heading"
-            className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl"
+            className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl text-terracotta"
           >
             Khám phá theo cách chế biến
           </h2>
@@ -178,7 +161,7 @@ export function HomePageClient() {
 
         <div className="-mx-4 mt-7 h-[300px] overflow-hidden sm:mx-0 sm:h-[315px] lg:h-[340px]">
           <LogoLoop
-            logos={CATEGORIES.map((category) => ({
+            logos={categoryCards.map((category) => ({
               node: <CategoryCard {...category} variant="loop" />,
               title: category.title,
               ariaLabel: `Khám phá ${category.title}`,
