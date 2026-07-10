@@ -11,6 +11,8 @@ import { StepNavigationButtons } from "@/components/cooking/StepNavigationButton
 import { FeedbackModal } from "@/components/modals/FeedbackModal";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { LoadingState } from "@/components/ui/LoadingState";
+import Stepper, { Step } from "@/components/ui/Stepper";
 import {
   completeCookingSession,
   startCookingSession,
@@ -40,6 +42,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [stepDirection, setStepDirection] = useState(0);
 
   const totalSteps = recipe.steps.length;
   const currentStepNumber = session?.currentStep ?? 1;
@@ -130,6 +133,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
     }
 
     setActionError(null);
+    setStepDirection(-1);
 
     try {
       await persistStep(currentStepNumber - 1);
@@ -148,6 +152,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
     }
 
     setActionError(null);
+    setStepDirection(1);
 
     try {
       if (isLastStep) {
@@ -234,7 +239,9 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
   if (isLoadingSession || !session || !currentStep) {
     return (
       <CookingModeShell recipeSlug={recipe.slug}>
-        <CenteredPanel>Đang chuẩn bị công thức...</CenteredPanel>
+        <div className="flex min-h-[calc(100vh-1.5rem)] items-center justify-center sm:min-h-[calc(100vh-2.5rem)]">
+          <LoadingState message="Đang chuẩn bị chế độ nấu..." />
+        </div>
       </CookingModeShell>
     );
   }
@@ -244,7 +251,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
 
   return (
     <CookingModeShell recipeSlug={recipe.slug}>
-      <section className="relative mx-auto flex min-h-[min(92vh,760px)] w-full max-w-[960px] flex-col rounded-lg border border-terracotta/15 bg-[#fff8f0] p-4 shadow-2xl sm:p-6">
+      <section className="relative flex h-full min-h-0 w-full flex-col p-3 sm:p-4 lg:p-6">
         <Link
           href={`/cong-thuc/${recipe.slug}`}
           aria-label="Đóng chế độ nấu"
@@ -261,14 +268,14 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
           </svg>
         </Link>
 
-        <div className="pl-10 sm:px-12">
+        <div className="shrink-0 pl-10 sm:px-12">
           <CookingProgressBar
             currentStep={currentStepNumber}
             totalSteps={totalSteps}
           />
         </div>
 
-        <div className="mt-7 grid flex-1 gap-6 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
+        <div className="mt-4 min-h-0 flex-1">
           <CookingStepContent
             cookingTerms={recipe.cookingTerms}
             ingredients={recipe.ingredients}
@@ -276,12 +283,36 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
             recipeImageAlt={recipe.imageAlt}
             step={currentStep}
             stepNumber={currentStepNumber}
+            totalSteps={totalSteps}
+            timerPanel={
+              <CookingTimerPanel
+                key={currentStep.id}
+                timerSeconds={timerSeconds}
+              />
+            }
           />
+        </div>
 
-          <CookingTimerPanel
-            key={currentStep.id}
-            timerSeconds={timerSeconds}
-          />
+        <div className="mt-4 shrink-0">
+          <Stepper
+            initialStep={currentStepNumber}
+            currentStep={currentStepNumber}
+            currentStepDirection={stepDirection}
+            disableStepIndicators
+            showContent={false}
+            showFooter={false}
+            stepCircleContainerClassName="cooking-stepper"
+            stepContainerClassName="cooking-stepper-row"
+            contentClassName="cooking-stepper-content"
+            footerClassName="cooking-stepper-footer"
+            aria-label={`Tiến độ từng bước: bước ${currentStepNumber} trên ${totalSteps}`}
+          >
+            {recipe.steps.map((step, index) => (
+              <Step key={step.id}>
+                <span className="sr-only">Bước {index + 1}</span>
+              </Step>
+            ))}
+          </Stepper>
         </div>
 
         {actionError ? (
@@ -290,7 +321,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
           </p>
         ) : null}
 
-        <div className="mt-6 border-t border-terracotta/10 pt-4">
+        <div className="mt-4 shrink-0 border-t border-terracotta/10 pt-3">
           <StepNavigationButtons
             canGoBack={currentStepNumber > 1}
             canGoForward
@@ -317,13 +348,13 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
 }
 
 interface CookingModeShellProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   recipeSlug: string;
 }
 
 function CookingModeShell({ children }: CookingModeShellProps) {
   return (
-    <main className="min-h-screen bg-[#28282f] bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255_/_0.16)_1px,transparent_0)] bg-[length:22px_22px] px-3 py-3 sm:px-6 sm:py-5">
+    <main className="h-screen overflow-hidden bg-[#fff8ec] px-3 py-3 sm:px-6 sm:py-5">
       {children}
     </main>
   );
