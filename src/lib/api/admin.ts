@@ -39,9 +39,9 @@ export function getAdminRecipe(id: string) {
   });
 }
 
-export function createAdminRecipe(input: AdminRecipeWriteInput) {
+export function createAdminRecipe(input: AdminRecipeWriteInput, image?: File | null) {
   return authorizedRequest<AdminRecipeDetail>({
-    body: input,
+    body: toRecipeFormData(input, image),
     method: "POST",
     path: "/api/v1/admin/recipes",
   });
@@ -50,12 +50,25 @@ export function createAdminRecipe(input: AdminRecipeWriteInput) {
 export function updateAdminRecipe(
   id: string,
   input: Partial<AdminRecipeWriteInput>,
+  image?: File | null,
 ) {
   return authorizedRequest<AdminRecipeDetail>({
-    body: input,
+    body: toRecipeFormData(input, image),
     method: "PATCH",
     path: `/api/v1/admin/recipes/${encodeURIComponent(id)}`,
   });
+}
+
+function toRecipeFormData(
+  input: Partial<AdminRecipeWriteInput>,
+  image?: File | null,
+) {
+  const body = new FormData();
+  const { image: _storedImageUrl, ...recipe } = input;
+  void _storedImageUrl;
+  body.append("recipe", JSON.stringify(recipe));
+  if (image) body.append("image", image);
+  return body;
 }
 
 export function hideAdminRecipe(id: string) {
