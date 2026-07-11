@@ -1,17 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 export interface ToastProps {
   message: string;
 }
 
 export function Toast({ message }: ToastProps) {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <div
       role="status"
-      className="fixed bottom-6 left-1/2 z-[70] flex -translate-x-1/2 items-center gap-2 rounded-full bg-sage px-5 py-3 font-semibold text-charcoal shadow-xl"
+      className="fixed bottom-6 left-1/2 z-[70] flex max-w-[min(calc(100vw-2rem),32rem)] -translate-x-1/2 items-center gap-2 rounded-2xl bg-sage px-5 py-3 text-sm font-semibold leading-6 text-charcoal shadow-xl sm:text-base"
     >
-      <span aria-hidden="true">✓</span>
-      {message}
-    </div>
+      <span aria-hidden="true" className="shrink-0">
+        ✓
+      </span>
+      <span className="min-w-0 break-words">{message}</span>
+    </div>,
+    document.body,
   );
 }
