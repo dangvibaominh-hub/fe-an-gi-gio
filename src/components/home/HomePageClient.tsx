@@ -107,18 +107,29 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
               rotationInterval={2000}
             />
           </h1>
-          <div className="mt-8">
-            {ingredients ? (
-              <IngredientPillInput
-                ingredients={ingredients}
-                onIngredientsChange={handleIngredientsChange}
-              />
-            ) : (
-              <div
-                aria-hidden="true"
-                className="min-h-32 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5"
-              />
-            )}
+          <div className="mt-8 grid w-fit max-w-full">
+            <div
+              aria-hidden="true"
+              className="invisible col-start-1 row-start-1 flex flex-wrap items-center gap-x-4 gap-y-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+            >
+              <span>Hôm nay nấu với</span>
+              <span className="rounded-2xl px-4 py-1 sm:px-5 sm:py-1.5">
+                rau muống
+              </span>
+            </div>
+            <div className="col-start-1 row-start-1 w-full">
+              {ingredients ? (
+                <IngredientPillInput
+                  ingredients={ingredients}
+                  onIngredientsChange={handleIngredientsChange}
+                />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="min-h-32 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5"
+                />
+              )}
+            </div>
           </div>
         </div>
       </section>
