@@ -51,7 +51,7 @@ export function RecipeCard({
           Công thức món
         </p>
 
-        <h2 className="truncate text-xl font-semibold text-charcoal uppercase">
+        <h2 className="break-words text-xl font-semibold text-charcoal uppercase">
           {title}
         </h2>
 
