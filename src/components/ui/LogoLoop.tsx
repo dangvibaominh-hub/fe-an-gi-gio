@@ -3,6 +3,8 @@
 import {
   type CSSProperties,
   type Key,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
   memo,
   useCallback,
@@ -42,6 +44,7 @@ export interface LogoLoopProps<TLogo extends LogoLoopItem = LogoLoopItem> {
   ariaLabel?: string;
   className?: string;
   direction?: Direction;
+  draggable?: boolean;
   fadeOut?: boolean;
   fadeOutColor?: string;
   gap?: number;
@@ -142,6 +145,24 @@ function useAnimationLoop(
   const lastTimestampRef = useRef<number | null>(null);
   const offsetRef = useRef(0);
   const velocityRef = useRef(0);
+  const dragRef = useRef({
+    didDrag: false,
+    isDragging: false,
+    lastPosition: 0,
+    pointerId: null as number | null,
+  });
+
+  const applyOffset = useCallback(
+    (offset: number) => {
+      const track = trackRef.current;
+      if (!track) return;
+
+      track.style.transform = isVertical
+        ? `translate3d(0, ${-offset}px, 0)`
+        : `translate3d(${-offset}px, 0, 0)`;
+    },
+    [isVertical, trackRef],
+  );
 
   useEffect(() => {
     const track = trackRef.current;
@@ -153,9 +174,7 @@ function useAnimationLoop(
 
     if (seqSize > 0) {
       offsetRef.current = ((offsetRef.current % seqSize) + seqSize) % seqSize;
-      track.style.transform = isVertical
-        ? `translate3d(0, ${-offsetRef.current}px, 0)`
-        : `translate3d(${-offsetRef.current}px, 0, 0)`;
+      applyOffset(offsetRef.current);
     }
 
     const animate = (timestamp: number) => {
@@ -166,6 +185,12 @@ function useAnimationLoop(
       const deltaTime =
         Math.max(0, timestamp - lastTimestampRef.current) / 1000;
       lastTimestampRef.current = timestamp;
+
+      if (dragRef.current.isDragging) {
+        velocityRef.current = 0;
+        rafRef.current = requestAnimationFrame(animate);
+        return;
+      }
 
       const target =
         isHovered && hoverSpeed !== undefined ? hoverSpeed : targetVelocity;
@@ -178,9 +203,7 @@ function useAnimationLoop(
         nextOffset = ((nextOffset % seqSize) + seqSize) % seqSize;
         offsetRef.current = nextOffset;
 
-        track.style.transform = isVertical
-          ? `translate3d(0, ${-offsetRef.current}px, 0)`
-          : `translate3d(${-offsetRef.current}px, 0, 0)`;
+        applyOffset(offsetRef.current);
       }
 
       rafRef.current = requestAnimationFrame(animate);
@@ -204,13 +227,65 @@ function useAnimationLoop(
     hoverSpeed,
     isVertical,
     trackRef,
+    applyOffset,
   ]);
+
+  const startDrag = useCallback(
+    (pointerId: number, position: number) => {
+      dragRef.current = {
+        didDrag: false,
+        isDragging: true,
+        lastPosition: position,
+        pointerId,
+      };
+      velocityRef.current = 0;
+    },
+    [],
+  );
+
+  const moveDrag = useCallback(
+    (pointerId: number, position: number) => {
+      const drag = dragRef.current;
+      const sequenceSize = isVertical ? seqHeight : seqWidth;
+
+      if (!drag.isDragging || drag.pointerId !== pointerId || sequenceSize <= 0) {
+        return false;
+      }
+
+      const delta = position - drag.lastPosition;
+      drag.lastPosition = position;
+
+      if (Math.abs(delta) > 0) {
+        drag.didDrag = true;
+        offsetRef.current =
+          ((offsetRef.current - delta) % sequenceSize + sequenceSize) %
+          sequenceSize;
+        applyOffset(offsetRef.current);
+      }
+
+      return drag.didDrag;
+    },
+    [applyOffset, isVertical, seqHeight, seqWidth],
+  );
+
+  const endDrag = useCallback((pointerId: number) => {
+    const drag = dragRef.current;
+    if (drag.pointerId !== pointerId) return false;
+
+    drag.isDragging = false;
+    drag.pointerId = null;
+    lastTimestampRef.current = null;
+    return drag.didDrag;
+  }, []);
+
+  return { endDrag, moveDrag, startDrag };
 }
 
 function LogoLoopComponent<TLogo extends LogoLoopItem>({
   logos,
   speed = 120,
   direction = "left",
+  draggable = false,
   width = "100%",
   logoHeight = 28,
   gap = 32,
@@ -232,6 +307,7 @@ function LogoLoopComponent<TLogo extends LogoLoopItem>({
   const [seqHeight, setSeqHeight] = useState(0);
   const [copyCount, setCopyCount] = useState(ANIMATION_CONFIG.MIN_COPIES);
   const [isHovered, setIsHovered] = useState(false);
+  const suppressClickRef = useRef(false);
 
   const effectiveHoverSpeed = useMemo(() => {
     if (hoverSpeed !== undefined) {
@@ -307,7 +383,7 @@ function LogoLoopComponent<TLogo extends LogoLoopItem>({
     isVertical,
   ]);
   useImageLoader(seqRef, updateDimensions, [logos, gap, logoHeight, isVertical]);
-  useAnimationLoop(
+  const dragControls = useAnimationLoop(
     trackRef,
     targetVelocity,
     seqWidth,
@@ -332,13 +408,14 @@ function LogoLoopComponent<TLogo extends LogoLoopItem>({
       [
         "logoloop",
         isVertical ? "logoloop--vertical" : "logoloop--horizontal",
+        draggable && "logoloop--draggable",
         fadeOut && "logoloop--fade",
         scaleOnHover && "logoloop--scale-hover",
         className,
       ]
         .filter(Boolean)
         .join(" "),
-    [isVertical, fadeOut, scaleOnHover, className],
+    [isVertical, draggable, fadeOut, scaleOnHover, className],
   );
 
   const handleMouseEnter = useCallback(() => {
@@ -352,6 +429,62 @@ function LogoLoopComponent<TLogo extends LogoLoopItem>({
       setIsHovered(false);
     }
   }, [effectiveHoverSpeed]);
+
+  const handlePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!draggable || (event.pointerType === "mouse" && event.button !== 0)) {
+        return;
+      }
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+      dragControls.startDrag(
+        event.pointerId,
+        isVertical ? event.clientY : event.clientX,
+      );
+    },
+    [dragControls, draggable, isVertical],
+  );
+
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!draggable) return;
+
+      if (
+        dragControls.moveDrag(
+          event.pointerId,
+          isVertical ? event.clientY : event.clientX,
+        )
+      ) {
+        event.preventDefault();
+      }
+    },
+    [dragControls, draggable, isVertical],
+  );
+
+  const handlePointerEnd = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!draggable) return;
+
+      const didDrag = dragControls.endDrag(event.pointerId);
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      suppressClickRef.current = didDrag;
+    },
+    [dragControls, draggable],
+  );
+
+  const handleClickCapture = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      if (!suppressClickRef.current) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClickRef.current = false;
+    },
+    [],
+  );
 
   const renderLogoItem = useCallback(
     (item: TLogo, key: Key) => {
@@ -455,8 +588,14 @@ function LogoLoopComponent<TLogo extends LogoLoopItem>({
       <div
         className="logoloop__track"
         ref={trackRef}
+        onClickCapture={handleClickCapture}
+        onDragStart={(event) => event.preventDefault()}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onPointerCancel={handlePointerEnd}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
       >
         {logoLists}
       </div>

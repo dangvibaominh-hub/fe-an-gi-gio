@@ -32,6 +32,15 @@
   z-index: 0;
 }
 
+.logoloop--draggable .logoloop__track {
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.logoloop--draggable .logoloop__track:active {
+  cursor: grabbing;
+}
+
 .logoloop--vertical .logoloop__track {
   flex-direction: column;
   height: max-content;

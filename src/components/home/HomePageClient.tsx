@@ -2,16 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { useEffect, useState } from "react";
 
 import { CategoryCard } from "@/components/home/CategoryCard";
 import { IngredientPillInput } from "@/components/home/IngredientPillInput";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
+import LogoLoop from "@/components/ui/LogoLoop";
 import RotatingText from "@/components/ui/RotatingText";
 import { Toast } from "@/components/ui/Toast";
 import {
@@ -31,13 +27,6 @@ interface HomePageClientProps {
 
 export function HomePageClient({ recipes }: HomePageClientProps) {
   const router = useRouter();
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const categoryDragRef = useRef({
-    didDrag: false,
-    pointerId: null as number | null,
-    scrollLeft: 0,
-    startX: 0,
-  });
   const [ingredients, setIngredients] = useState<string[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -91,41 +80,6 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
     setIsSearching(true);
     saveSearchSession(nextIngredients);
     router.push(buildResultsHref(nextIngredients));
-  }
-
-  function startCategoryDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse" || event.button !== 0) return;
-    const container = categoryScrollRef.current;
-    if (!container) return;
-
-    categoryDragRef.current = {
-      didDrag: false,
-      pointerId: event.pointerId,
-      scrollLeft: container.scrollLeft,
-      startX: event.clientX,
-    };
-    container.setPointerCapture(event.pointerId);
-  }
-
-  function moveCategoryDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    const drag = categoryDragRef.current;
-    const container = categoryScrollRef.current;
-    if (!container || drag.pointerId !== event.pointerId) return;
-
-    const distance = event.clientX - drag.startX;
-    if (Math.abs(distance) > 4) drag.didDrag = true;
-    container.scrollLeft = drag.scrollLeft - distance;
-  }
-
-  function endCategoryDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    const drag = categoryDragRef.current;
-    const container = categoryScrollRef.current;
-    if (!container || drag.pointerId !== event.pointerId) return;
-
-    if (container.hasPointerCapture(event.pointerId)) {
-      container.releasePointerCapture(event.pointerId);
-    }
-    drag.pointerId = null;
   }
 
   return (
@@ -216,30 +170,21 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
           </h2>
         </div>
 
-        <div className="relative -mx-4 mt-7 sm:mx-0">
-          <div
-            ref={categoryScrollRef}
-            aria-label="Danh mục cách chế biến"
-            onClickCapture={(event) => {
-              if (!categoryDragRef.current.didDrag) return;
-              event.preventDefault();
-              event.stopPropagation();
-              categoryDragRef.current.didDrag = false;
-            }}
-            onPointerDown={startCategoryDrag}
-            onPointerMove={moveCategoryDrag}
-            onPointerUp={endCategoryDrag}
-            onPointerCancel={endCategoryDrag}
-            onDragStart={(event) => event.preventDefault()}
-            className="scrollbar-none flex cursor-grab snap-x snap-mandatory gap-5 overflow-x-auto overscroll-x-contain px-4 pb-2 select-none active:cursor-grabbing sm:px-0"
-          >
-            {categoryCards.map((category) => (
-              <CategoryCard key={category.title} {...category} variant="loop" />
-            ))}
-          </div>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-cream to-transparent sm:w-14"
+        <div className="-mx-4 mt-7 h-[300px] overflow-hidden sm:mx-0 sm:h-[315px] lg:h-[340px]">
+          <LogoLoop
+            logos={categoryCards.map((category) => ({
+              node: <CategoryCard {...category} variant="loop" />,
+              title: category.title,
+              ariaLabel: `Khám phá ${category.title}`,
+            }))}
+            speed={70}
+            direction="left"
+            logoHeight={1}
+            gap={20}
+            hoverSpeed={0}
+            draggable
+            ariaLabel="Danh mục cách chế biến"
+            className="category-card-loop"
           />
         </div>
       </section>
