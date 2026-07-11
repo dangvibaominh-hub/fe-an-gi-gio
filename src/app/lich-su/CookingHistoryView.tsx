@@ -278,7 +278,7 @@ export function CookingHistoryView() {
 function HistoryPageShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-[calc(100vh-80px)] bg-[#fff8ec]">
-      <section className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 pb-12 pt-4 sm:px-6 sm:pb-14 sm:pt-10 lg:px-8">
         {children}
       </section>
     </main>
