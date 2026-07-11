@@ -143,6 +143,18 @@ function useAnimationLoop(
   const offsetRef = useRef(0);
   const velocityRef = useRef(0);
 
+  const applyOffset = useCallback(
+    (offset: number) => {
+      const track = trackRef.current;
+      if (!track) return;
+
+      track.style.transform = isVertical
+        ? `translate3d(0, ${-offset}px, 0)`
+        : `translate3d(${-offset}px, 0, 0)`;
+    },
+    [isVertical, trackRef],
+  );
+
   useEffect(() => {
     const track = trackRef.current;
     if (!track) {
@@ -153,9 +165,7 @@ function useAnimationLoop(
 
     if (seqSize > 0) {
       offsetRef.current = ((offsetRef.current % seqSize) + seqSize) % seqSize;
-      track.style.transform = isVertical
-        ? `translate3d(0, ${-offsetRef.current}px, 0)`
-        : `translate3d(${-offsetRef.current}px, 0, 0)`;
+      applyOffset(offsetRef.current);
     }
 
     const animate = (timestamp: number) => {
@@ -178,9 +188,7 @@ function useAnimationLoop(
         nextOffset = ((nextOffset % seqSize) + seqSize) % seqSize;
         offsetRef.current = nextOffset;
 
-        track.style.transform = isVertical
-          ? `translate3d(0, ${-offsetRef.current}px, 0)`
-          : `translate3d(${-offsetRef.current}px, 0, 0)`;
+        applyOffset(offsetRef.current);
       }
 
       rafRef.current = requestAnimationFrame(animate);
@@ -204,7 +212,9 @@ function useAnimationLoop(
     hoverSpeed,
     isVertical,
     trackRef,
+    applyOffset,
   ]);
+
 }
 
 function LogoLoopComponent<TLogo extends LogoLoopItem>({

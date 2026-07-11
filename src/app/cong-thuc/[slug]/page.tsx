@@ -8,6 +8,7 @@ import { RecipeIngredientsPanelWithSession } from "@/components/recipe/RecipeIng
 import { StartCookingButton } from "@/components/recipe/StartCookingButton";
 import { StepList } from "@/components/recipe/StepList";
 import { getRecipeBySlug } from "@/lib/api/recipes";
+import { resolveRecipeImage } from "@/lib/recipeImages";
 
 interface RecipeDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -40,7 +41,7 @@ export default async function RecipeDetailPage({
       <header className="relative overflow-hidden rounded-2xl shadow-warm">
         <div className="relative aspect-[16/8] min-h-80">
           <Image
-            src={recipe.image}
+            src={resolveRecipeImage(recipe.image)}
             alt={recipe.imageAlt}
             fill
             priority

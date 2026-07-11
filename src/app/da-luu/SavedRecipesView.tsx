@@ -36,7 +36,7 @@ export function SavedRecipesView() {
   if (isInitializing) {
     return (
       <main className="min-h-[calc(100vh-80px)] bg-[#fff8ec]">
-        <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <section className="mx-auto w-full max-w-7xl px-4 pb-12 pt-4 sm:px-6 sm:pb-14 sm:pt-10 lg:px-8">
           <div className="grid min-h-56 place-items-center rounded-2xl border border-dashed border-terracotta/30 text-charcoal/70">
             Đang tải công thức...
           </div>
@@ -48,7 +48,7 @@ export function SavedRecipesView() {
   if (!isAuthenticated) {
     return (
       <main className="min-h-[calc(100vh-80px)] bg-[#fff8ec]">
-        <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <section className="mx-auto w-full max-w-7xl px-4 pb-12 pt-4 sm:px-6 sm:pb-14 sm:pt-10 lg:px-8">
           <div className="max-w-4xl">
             <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
               Công thức đã lưu
@@ -71,7 +71,7 @@ export function SavedRecipesView() {
 
   return (
     <main className="min-h-[calc(100vh-80px)] bg-[#fff8ec]">
-      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 pb-12 pt-4 sm:px-6 sm:pb-14 sm:pt-10 lg:px-8">
         <div className="max-w-4xl">
           <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
             Công thức đã lưu

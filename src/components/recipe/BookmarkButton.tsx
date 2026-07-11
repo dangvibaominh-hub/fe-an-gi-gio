@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { IconButton } from "@/components/ui/IconButton";
+import { Toast } from "@/components/ui/Toast";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { SAVED_RECIPES_CHANGED_EVENT } from "@/lib/auth/events";
 
@@ -22,6 +23,7 @@ export function BookmarkButton({
   } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     function updateSavedState() {
@@ -43,6 +45,18 @@ export function BookmarkButton({
     };
   }, [isRecipeSaved, recipeSlug]);
 
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 2500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toastMessage]);
+
   function handleToggleSave(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
@@ -59,9 +73,15 @@ export function BookmarkButton({
       void toggleSavedRecipe(recipeSlug)
         .then((nextSavedState) => {
           setIsSaved(nextSavedState);
+          setToastMessage(
+            nextSavedState
+              ? "Đã lưu công thức"
+              : "Đã bỏ lưu công thức",
+          );
         })
         .catch(() => {
           setIsSaved(isRecipeSaved(recipeSlug));
+          setToastMessage("Không thể cập nhật công thức đã lưu");
         })
         .finally(() => {
           setIsPending(false);
@@ -70,24 +90,28 @@ export function BookmarkButton({
   }
 
   return (
-    <IconButton
-      aria-label={`${isSaved ? "Bỏ lưu" : "Lưu"} công thức ${recipeTitle}`}
-      isActive={isSaved}
-      onClick={handleToggleSave}
-      className="bg-white/90 shadow-warm hover:bg-white"
-    >
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        className={`size-5 stroke-current ${
-          isSaved ? "fill-current" : "fill-none"
-        }`}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+    <>
+      <IconButton
+        aria-label={`${isSaved ? "Bỏ lưu" : "Lưu"} công thức ${recipeTitle}`}
+        isActive={isSaved}
+        onClick={handleToggleSave}
+        className="bg-white/90 shadow-warm hover:bg-white"
       >
-        <path d="M6 3h12v18l-6-4-6 4V3Z" />
-      </svg>
-    </IconButton>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className={`size-5 stroke-current ${
+            isSaved ? "fill-current" : "fill-none"
+          }`}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 3h12v18l-6-4-6 4V3Z" />
+        </svg>
+      </IconButton>
+
+      {toastMessage ? <Toast message={toastMessage} /> : null}
+    </>
   );
 }

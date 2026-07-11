@@ -2,16 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { useEffect, useState } from "react";
 
 import { CategoryCard } from "@/components/home/CategoryCard";
 import { IngredientPillInput } from "@/components/home/IngredientPillInput";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
+import LogoLoop from "@/components/ui/LogoLoop";
 import RotatingText from "@/components/ui/RotatingText";
 import { Toast } from "@/components/ui/Toast";
 import {
@@ -31,13 +27,6 @@ interface HomePageClientProps {
 
 export function HomePageClient({ recipes }: HomePageClientProps) {
   const router = useRouter();
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const categoryDragRef = useRef({
-    didDrag: false,
-    pointerId: null as number | null,
-    scrollLeft: 0,
-    startX: 0,
-  });
   const [ingredients, setIngredients] = useState<string[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -93,45 +82,10 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
     router.push(buildResultsHref(nextIngredients));
   }
 
-  function startCategoryDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse" || event.button !== 0) return;
-    const container = categoryScrollRef.current;
-    if (!container) return;
-
-    categoryDragRef.current = {
-      didDrag: false,
-      pointerId: event.pointerId,
-      scrollLeft: container.scrollLeft,
-      startX: event.clientX,
-    };
-    container.setPointerCapture(event.pointerId);
-  }
-
-  function moveCategoryDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    const drag = categoryDragRef.current;
-    const container = categoryScrollRef.current;
-    if (!container || drag.pointerId !== event.pointerId) return;
-
-    const distance = event.clientX - drag.startX;
-    if (Math.abs(distance) > 4) drag.didDrag = true;
-    container.scrollLeft = drag.scrollLeft - distance;
-  }
-
-  function endCategoryDrag(event: ReactPointerEvent<HTMLDivElement>) {
-    const drag = categoryDragRef.current;
-    const container = categoryScrollRef.current;
-    if (!container || drag.pointerId !== event.pointerId) return;
-
-    if (container.hasPointerCapture(event.pointerId)) {
-      container.releasePointerCapture(event.pointerId);
-    }
-    drag.pointerId = null;
-  }
-
   return (
     <>
       <section className="mx-auto w-full max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pb-14">
-        <div className="max-w-4xl">
+        <div className="w-full">
           <h1 className="flex flex-wrap items-center gap-x-4 gap-y-3 text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
             <span>Hôm nay nấu với</span>
             <RotatingText
@@ -153,18 +107,32 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
               rotationInterval={2000}
             />
           </h1>
-          <div className="mt-8">
-            {ingredients ? (
-              <IngredientPillInput
-                ingredients={ingredients}
-                onIngredientsChange={handleIngredientsChange}
-              />
-            ) : (
-              <div
-                aria-hidden="true"
-                className="min-h-32 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5"
-              />
-            )}
+          <div className="mt-8 flex w-full flex-col items-center">
+            <div className="w-full">
+              {ingredients ? (
+                <IngredientPillInput
+                  ingredients={ingredients}
+                  onIngredientsChange={handleIngredientsChange}
+                  onValidationError={setErrorMessage}
+                />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="min-h-32 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5"
+                />
+              )}
+            </div>
+
+            <div className="mt-6 flex w-full justify-center">
+              <ButtonPrimary
+                type="button"
+                disabled={isSearching}
+                onClick={handleSearch}
+                className="min-w-56"
+              >
+                {isSearching ? "Đang chuyển trang..." : "Tìm món ngay"}
+              </ButtonPrimary>
+            </div>
           </div>
         </div>
       </section>
@@ -205,44 +173,23 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
           </h2>
         </div>
 
-        <div className="relative -mx-4 mt-7 sm:mx-0">
-          <div
-            ref={categoryScrollRef}
-            aria-label="Danh mục cách chế biến"
-            onClickCapture={(event) => {
-              if (!categoryDragRef.current.didDrag) return;
-              event.preventDefault();
-              event.stopPropagation();
-              categoryDragRef.current.didDrag = false;
-            }}
-            onPointerDown={startCategoryDrag}
-            onPointerMove={moveCategoryDrag}
-            onPointerUp={endCategoryDrag}
-            onPointerCancel={endCategoryDrag}
-            onDragStart={(event) => event.preventDefault()}
-            className="scrollbar-none flex cursor-grab snap-x snap-mandatory gap-5 overflow-x-auto overscroll-x-contain px-4 pb-2 select-none active:cursor-grabbing sm:px-0"
-          >
-            {categoryCards.map((category) => (
-              <CategoryCard key={category.title} {...category} variant="loop" />
-            ))}
-          </div>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-cream to-transparent sm:w-14"
+        <div className="-mx-4 mt-7 h-[300px] overflow-hidden sm:mx-0 sm:h-[315px] lg:h-[340px]">
+          <LogoLoop
+            logos={categoryCards.map((category) => ({
+              node: <CategoryCard {...category} variant="loop" />,
+              title: category.title,
+              ariaLabel: `Khám phá ${category.title}`,
+            }))}
+            speed={70}
+            direction="left"
+            logoHeight={1}
+            gap={20}
+            hoverSpeed={0}
+            ariaLabel="Danh mục cách chế biến"
+            className="category-card-loop"
           />
         </div>
       </section>
-
-      <div className="mx-auto flex w-full max-w-7xl justify-center px-4 pb-20 sm:px-6 lg:px-8">
-        <ButtonPrimary
-          type="button"
-          disabled={isSearching}
-          onClick={handleSearch}
-          className="min-w-56"
-        >
-          {isSearching ? "Đang chuyển trang..." : "Tìm món ngay"}
-        </ButtonPrimary>
-      </div>
 
       {errorMessage ? <Toast message={errorMessage} /> : null}
     </>

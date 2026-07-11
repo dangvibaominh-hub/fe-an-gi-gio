@@ -2,22 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import "./CookingTimerPanel.css";
+
 interface CookingTimerPanelProps {
   timerSeconds: number;
 }
 
 type TimerStatus = "idle" | "paused" | "running";
 
-function formatTimer(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
+function formatTimerDigits(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 
-  return [
-    String(hours).padStart(2, "0"),
-    String(minutes).padStart(2, "0"),
-    String(seconds).padStart(2, "0"),
-  ].join(":");
+  return {
+    minutes: String(minutes).padStart(2, "0"),
+    seconds: String(seconds).padStart(2, "0"),
+  };
 }
 
 export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
@@ -76,48 +76,41 @@ export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
     setStatus("idle");
   }
 
+  const timerDigits = formatTimerDigits(remainingSeconds);
+
   return (
-    <aside
-      aria-label="Đồng hồ đếm ngược"
-      className="h-full rounded-lg border border-terracotta/15 bg-[#fde9e3] p-4 text-center shadow-warm lg:p-5"
-    >
-      <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-mustard text-charcoal">
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="size-5 fill-none stroke-current"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 2" />
-        </svg>
-      </div>
-
-      <p className="mt-4 text-base font-bold text-charcoal">Theo dõi thời gian nấu</p>
-
-      <p
-        aria-live="polite"
-        className="mt-4 rounded-md bg-white px-3 py-3 text-2xl font-bold tabular-nums text-terracotta sm:text-3xl"
-      >
-        {formatTimer(remainingSeconds)}
+    <aside aria-label="Đồng hồ đếm ngược" className="cooking-timer-phone">
+      <span aria-hidden="true" className="cooking-timer-phone__notch" />
+      <span
+        aria-hidden="true"
+        className="cooking-timer-phone__side-button cooking-timer-phone__side-button--top"
+      />
+      <p aria-live="polite" className="cooking-timer-phone__time tabular-nums">
+        {timerDigits.minutes}:{timerDigits.seconds}
       </p>
+      <p className="cooking-timer-phone__label">Theo dõi thời gian nấu</p>
 
-      <div className="mt-4">
+      <div>
         {status === "running" ? (
           <button
             type="button"
             onClick={handlePause}
-            className="inline-flex min-h-10 w-full items-center justify-center rounded-full bg-terracotta px-4 text-sm font-bold text-white transition hover:bg-terracotta/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+            className="cooking-timer-phone__timer-button"
           >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="size-3.5 fill-current"
+            >
+              <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
+            </svg>
             Tạm dừng
           </button>
         ) : (
           <button
             type="button"
             onClick={handleStart}
-            className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-terracotta px-4 text-sm font-bold text-white transition hover:bg-terracotta/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+            className="cooking-timer-phone__timer-button"
           >
             <svg
               aria-hidden="true"
@@ -129,15 +122,15 @@ export function CookingTimerPanel({ timerSeconds }: CookingTimerPanelProps) {
             {status === "paused" ? "Tiếp tục" : "Bắt đầu"}
           </button>
         )}
-      </div>
 
-      <button
-        type="button"
-        onClick={handleReset}
-        className="mt-3 text-xs font-semibold text-charcoal/55 underline-offset-4 transition hover:text-terracotta hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
-      >
-        Đặt lại
-      </button>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="cooking-timer-phone__reset"
+        >
+          Đặt lại
+        </button>
+      </div>
     </aside>
   );
 }
