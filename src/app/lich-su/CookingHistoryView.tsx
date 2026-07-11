@@ -7,10 +7,12 @@ import { useEffect, useMemo, useState } from "react";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getCookingHistory } from "@/lib/api/cookingSessions";
+import { getCookingFeedbackOptions } from "@/lib/api/feedback";
 import { ApiRequestError } from "@/lib/api/errors";
 import { FEEDBACK_ISSUE_OPTIONS } from "@/lib/constants/feedback";
 import { normalizeCookingSession, normalizeFeedbackIssues } from "@/lib/cooking/normalize";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import type { PaginationMeta } from "@/lib/types/api";
 import type {
   CookingHistorySort,
   CookingSession,
@@ -21,9 +23,11 @@ const HISTORY_SORT_OPTIONS: ReadonlyArray<{
   label: string;
   value: CookingHistorySort;
 }> = [
-    { label: "Gần đây nhất", value: "completed-at-desc" },
-    { label: "Đánh giá cao nhất", value: "rating-desc" },
-  ];
+  { label: "Nấu xong gần đây nhất", value: "completed-at-desc" },
+  { label: "Bắt đầu nấu gần đây nhất", value: "started-at-desc" },
+  { label: "Đánh giá cao nhất", value: "rating-desc" },
+];
+const HISTORY_PAGE_SIZE = 5;
 
 const ISSUE_LABELS = Object.fromEntries(
   FEEDBACK_ISSUE_OPTIONS.map(({ label, value }) => [value, label]),
@@ -36,7 +40,12 @@ export function CookingHistoryView() {
     openAuthModal,
   } = useAuth();
   const [sort, setSort] = useState<CookingHistorySort>("completed-at-desc");
+  const [page, setPage] = useState(1);
   const [sessions, setSessions] = useState<CookingSession[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
+  const [issueLabelsBySession, setIssueLabelsBySession] = useState<
+    Record<string, Partial<Record<FeedbackIssue, string>>>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -52,13 +61,15 @@ export function CookingHistoryView() {
       setLoadError(null);
 
       try {
-        const { items } = await getCookingHistory({
-          limit: 50,
+        const { items, meta } = await getCookingHistory({
+          limit: HISTORY_PAGE_SIZE,
+          page,
           sort,
         });
 
         if (!cancelled) {
           setSessions(items.map((session) => normalizeCookingSession(session)));
+          setPagination(meta);
         }
       } catch (error) {
         if (!cancelled) {
@@ -80,7 +91,43 @@ export function CookingHistoryView() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, isInitializing, sort]);
+  }, [isAuthenticated, isInitializing, page, sort]);
+
+  useEffect(() => {
+    const sessionsWithFeedback = sessions.filter(
+      (session) => normalizeFeedbackIssues(session.feedback?.issues).length > 0,
+    );
+
+    if (sessionsWithFeedback.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void Promise.all(
+      sessionsWithFeedback.map(async (session) => {
+        try {
+          const options = await getCookingFeedbackOptions(session.id);
+          return [
+            session.id,
+            Object.fromEntries(
+              options.map(({ label, value }) => [value, label]),
+            ) as Partial<Record<FeedbackIssue, string>>,
+          ] as const;
+        } catch {
+          return [session.id, {}] as const;
+        }
+      }),
+    ).then((entries) => {
+      if (!cancelled) {
+        setIssueLabelsBySession(Object.fromEntries(entries));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessions]);
 
   const completedSessions = useMemo(() => {
     return sessions.filter((session) => session.status === "COMPLETED");
@@ -119,21 +166,21 @@ export function CookingHistoryView() {
     <HistoryPageShell>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-4xl font-medium tracking-tight text-charcoal sm:text-5xl">
-            Lịch sử nấu của bạn
+          <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
+            Lịch sử nấu
           </h1>
           <p className="mt-3 text-sm text-charcoal/70 sm:text-base">
-            Các món bạn đã hoàn thành và phản hồi gần đây.
+            Các món bạn đã nấu xong gần đây.
           </p>
         </div>
 
         <label className="flex flex-col gap-2 text-sm font-semibold text-charcoal">
-          Sắp xếp theo
           <select
             value={sort}
-            onChange={(event) =>
-              setSort(event.target.value as CookingHistorySort)
-            }
+            onChange={(event) => {
+              setSort(event.target.value as CookingHistorySort);
+              setPage(1);
+            }}
             className="min-h-11 rounded-xl border border-terracotta/30 bg-white px-4 py-2 font-medium text-charcoal outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20"
           >
             {HISTORY_SORT_OPTIONS.map(({ label, value }) => (
@@ -162,10 +209,66 @@ export function CookingHistoryView() {
         ) : (
           <ol className="relative space-y-8 border-l border-terracotta/20 pl-8">
             {completedSessions.map((session) => (
-              <HistoryTimelineItem key={session.id} session={session} />
+              <HistoryTimelineItem
+                key={session.id}
+                session={session}
+                issueLabels={issueLabelsBySession[session.id]}
+              />
             ))}
           </ol>
         )}
+
+        {pagination && pagination.totalPages > 1 ? (
+          <nav
+            aria-label="Phân trang lịch sử nấu"
+            className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-3"
+          >
+            <button
+              type="button"
+              onClick={() => setPage((currentPage) => currentPage - 1)}
+              disabled={pagination.page <= 1 || isLoading}
+              className="min-h-10 justify-self-start rounded-full border border-terracotta/25 bg-white px-4 text-sm font-semibold text-charcoal transition hover:border-terracotta disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Trước
+            </button>
+            <div className="flex flex-wrap justify-center gap-2" aria-label="Chọn trang">
+              {Array.from(
+                { length: pagination.totalPages },
+                (_, index) => index + 1,
+              ).map((pageNumber) => {
+                const isCurrentPage = pageNumber === pagination.page;
+
+                return (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    aria-current={isCurrentPage ? "page" : undefined}
+                    disabled={isLoading}
+                    onClick={() => setPage(pageNumber)}
+                    className={[
+                      "inline-flex size-10 items-center justify-center rounded-full text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta disabled:cursor-not-allowed disabled:opacity-40",
+                      isCurrentPage
+                        ? "bg-terracotta text-white"
+                        : "border border-terracotta/25 bg-white text-charcoal hover:border-terracotta hover:text-terracotta",
+                    ].join(" ")}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage((currentPage) => currentPage + 1)}
+              disabled={
+                pagination.page >= pagination.totalPages || isLoading
+              }
+              className="min-h-10 justify-self-end rounded-full border border-terracotta/25 bg-white px-4 text-sm font-semibold text-charcoal transition hover:border-terracotta disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Sau
+            </button>
+          </nav>
+        ) : null}
       </div>
     </HistoryPageShell>
   );
@@ -181,7 +284,13 @@ function HistoryPageShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function HistoryTimelineItem({ session }: { session: CookingSession }) {
+function HistoryTimelineItem({
+  session,
+  issueLabels = {},
+}: {
+  issueLabels?: Partial<Record<FeedbackIssue, string>>;
+  session: CookingSession;
+}) {
   const completedDate = session.completedAt
     ? formatHistoryDate(session.completedAt)
     : formatHistoryDate(session.startedAt);
@@ -230,12 +339,10 @@ function HistoryTimelineItem({ session }: { session: CookingSession }) {
               {feedbackIssues.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {feedbackIssues.map((issue) => (
-                    <span
+                    <FeedbackIssueChip
                       key={issue}
-                      className="rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta"
-                    >
-                      {ISSUE_LABELS[issue]}
-                    </span>
+                      label={issueLabels[issue] ?? ISSUE_LABELS[issue]}
+                    />
                   ))}
                 </div>
               ) : null}
@@ -257,6 +364,27 @@ function HistoryTimelineItem({ session }: { session: CookingSession }) {
         </div>
       </article>
     </li>
+  );
+}
+
+function FeedbackIssueChip({
+  label,
+}: {
+  label?: string;
+}) {
+  if (!label) {
+    return (
+      <span
+        aria-label="Đang tải nhãn phản hồi"
+        className="h-7 w-28 animate-pulse rounded-full bg-terracotta/10"
+      />
+    );
+  }
+
+  return (
+    <span className="rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta">
+      {label}
+    </span>
   );
 }
 

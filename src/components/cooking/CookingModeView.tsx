@@ -18,6 +18,7 @@ import {
   startCookingSession,
   updateCookingSession,
 } from "@/lib/api/cookingSessions";
+import { getCookingFeedbackOptions } from "@/lib/api/feedback";
 import { ApiRequestError } from "@/lib/api/errors";
 import {
   POST_COOKING_TOAST_KEY,
@@ -64,6 +65,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
       });
 
       setSession(nextSession);
+      void getCookingFeedbackOptions(nextSession.id).catch(() => undefined);
     } catch (error) {
       if (error instanceof ApiRequestError) {
         setLoadError(error.message);
@@ -94,6 +96,7 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
 
         if (!cancelled) {
           setSession(nextSession);
+          void getCookingFeedbackOptions(nextSession.id).catch(() => undefined);
         }
       } catch (error) {
         if (!cancelled) {

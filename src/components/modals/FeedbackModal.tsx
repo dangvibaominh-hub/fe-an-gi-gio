@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ModalBase } from "@/components/modals/ModalBase";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
-import { submitCookingFeedback } from "@/lib/api/feedback";
+import {
+  getCachedCookingFeedbackOptions,
+  getCookingFeedbackOptions,
+  submitCookingFeedback,
+} from "@/lib/api/feedback";
 import { ApiRequestError } from "@/lib/api/errors";
 import { FEEDBACK_ISSUE_OPTIONS } from "@/lib/constants/feedback";
-import type { FeedbackIssue } from "@/lib/types/cookingSession";
+import type {
+  CookingFeedbackOption,
+  FeedbackIssue,
+} from "@/lib/types/cookingSession";
 
 export interface FeedbackModalProps {
   cookingSessionId: string;
@@ -47,11 +54,53 @@ interface FeedbackFormProps {
 }
 
 function FeedbackForm({ cookingSessionId, onSuccess }: FeedbackFormProps) {
+  const cachedIssueOptions = getCachedCookingFeedbackOptions(cookingSessionId);
   const [rating, setRating] = useState<number | null>(null);
   const [selectedIssues, setSelectedIssues] = useState<FeedbackIssue[]>([]);
   const [note, setNote] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [issueOptions, setIssueOptions] = useState<
+    ReadonlyArray<CookingFeedbackOption>
+  >(cachedIssueOptions ?? FEEDBACK_ISSUE_OPTIONS);
+  const [isLoadingIssueOptions, setIsLoadingIssueOptions] = useState(
+    !cachedIssueOptions,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (cachedIssueOptions) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void (async () => {
+      setIsLoadingIssueOptions(true);
+
+      try {
+        const options = await getCookingFeedbackOptions(cookingSessionId);
+
+        if (!cancelled) {
+          setIssueOptions(options);
+        }
+      } catch {
+        // Keep generic options available if the category-specific endpoint fails.
+        if (!cancelled) {
+          setIssueOptions(FEEDBACK_ISSUE_OPTIONS);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingIssueOptions(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cachedIssueOptions, cookingSessionId]);
 
   function toggleIssue(issue: FeedbackIssue) {
     setSelectedIssues((currentIssues) => {
@@ -141,7 +190,10 @@ function FeedbackForm({ cookingSessionId, onSuccess }: FeedbackFormProps) {
           Bạn gặp khó khăn gì không?
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {FEEDBACK_ISSUE_OPTIONS.map(({ label, value }) => {
+          {isLoadingIssueOptions ? (
+            <p className="text-sm text-charcoal/60">Đang tải lựa chọn...</p>
+          ) : null}
+          {issueOptions.map(({ label, value }) => {
             const isSelected = selectedIssues.includes(value);
 
             return (

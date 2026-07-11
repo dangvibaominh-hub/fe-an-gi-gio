@@ -1,15 +1,11 @@
+import { FEEDBACK_ISSUES } from "@/lib/types/cookingSession";
 import type {
   CookingFeedbackSummary,
   CookingSession,
   FeedbackIssue,
 } from "@/lib/types/cookingSession";
 
-const VALID_FEEDBACK_ISSUES = new Set<FeedbackIssue>([
-  "cutting-meat-hard",
-  "missing-ingredients",
-  "oil-splatter",
-  "took-longer-than-expected",
-]);
+const VALID_FEEDBACK_ISSUES = new Set<FeedbackIssue>(FEEDBACK_ISSUES);
 
 export function normalizeFeedbackIssues(value: unknown): FeedbackIssue[] {
   if (value === null || value === undefined) {
