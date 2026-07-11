@@ -62,15 +62,20 @@ export function CategoryTabs({ panels, defaultCategory }: CategoryTabsProps) {
       return;
     }
 
+    const searchParams = new URLSearchParams(window.location.search);
+
     if (category === ALL_CATEGORIES_TAB) {
-      window.history.replaceState(null, "", "/kham-pha");
+      searchParams.delete("category");
+      const query = searchParams.toString();
+      window.history.replaceState(null, "", query ? `/kham-pha?${query}` : "/kham-pha");
       return;
     }
 
+    searchParams.set("category", category);
     window.history.replaceState(
       null,
       "",
-      `/kham-pha?category=${encodeURIComponent(category)}`,
+      `/kham-pha?${searchParams.toString()}`,
     );
   };
 

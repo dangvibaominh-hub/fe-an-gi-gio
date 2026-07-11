@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BookmarkButton } from "@/components/recipe/BookmarkButton";
 import { DifficultyBadge } from "@/components/recipe/DifficultyBadge";
 import { RecipeMatchSummary } from "@/components/recipe/RecipeMatchSummary";
+import { resolveRecipeImage } from "@/lib/recipeImages";
 import type { RecipeSummary } from "@/lib/types/recipe";
 import type { RecommendationMatch } from "@/lib/types/recommendation";
 
@@ -31,7 +32,7 @@ export function RecipeCard({
 
       <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl">
         <Image
-          src={image}
+          src={resolveRecipeImage(image)}
           alt={imageAlt}
           fill
           sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"

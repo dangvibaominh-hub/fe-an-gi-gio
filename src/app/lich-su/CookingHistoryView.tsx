@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { getCookingHistory } from "@/lib/api/cookingSessions";
 import { getCookingFeedbackOptions } from "@/lib/api/feedback";
 import { ApiRequestError } from "@/lib/api/errors";
+import { resolveRecipeImage } from "@/lib/recipeImages";
 import { FEEDBACK_ISSUE_OPTIONS } from "@/lib/constants/feedback";
 import { normalizeCookingSession, normalizeFeedbackIssues } from "@/lib/cooking/normalize";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -310,7 +311,7 @@ function HistoryTimelineItem({
             className="relative block aspect-[4/3] overflow-hidden rounded-xl"
           >
             <Image
-              src={session.recipe.image}
+              src={resolveRecipeImage(session.recipe.image)}
               alt={session.recipe.imageAlt}
               fill
               sizes="128px"

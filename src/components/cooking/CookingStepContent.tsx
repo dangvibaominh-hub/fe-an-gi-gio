@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { Clock3 } from "lucide-react";
 import { useState } from "react";
 
+import { resolveRecipeImage } from "@/lib/recipeImages";
 import type { RecipeIngredient, RecipeStep } from "@/lib/types/recipe";
 
 const TERM_PATTERN = /{{(.*?)}}/g;
@@ -69,7 +70,7 @@ export function CookingStepContent({
           <div className="mt-2 grid min-h-0 gap-x-3 gap-y-3 sm:grid-cols-[minmax(8rem,16rem)_minmax(0,1fr)] sm:grid-rows-[minmax(0,16rem)] lg:grid-cols-[minmax(9rem,18rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,18rem)]">
             <div className="relative aspect-square min-h-0 w-full overflow-hidden rounded-lg bg-charcoal/10 sm:h-full">
           <Image
-            src={recipeImage}
+            src={resolveRecipeImage(recipeImage)}
             alt={recipeImageAlt}
             fill
             priority

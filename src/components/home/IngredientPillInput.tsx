@@ -2,28 +2,52 @@
 
 import { useState } from "react";
 
+const MAX_INGREDIENTS = 12;
+const MAX_INGREDIENT_LENGTH = 24;
+
 export interface IngredientPillInputProps {
   ingredients: string[];
   onIngredientsChange: (ingredients: string[]) => void;
+  onValidationError?: (message: string) => void;
 }
 
 export function IngredientPillInput({
   ingredients,
   onIngredientsChange,
+  onValidationError,
 }: IngredientPillInputProps) {
   const [inputValue, setInputValue] = useState("");
 
   function addIngredient() {
     const nextIngredient = inputValue.trim();
 
+    if (!nextIngredient) {
+      setInputValue("");
+      return;
+    }
+
+    if (nextIngredient.length > MAX_INGREDIENT_LENGTH) {
+      onValidationError?.(
+        `Mỗi nguyên liệu tối đa ${MAX_INGREDIENT_LENGTH} ký tự.`,
+      );
+      return;
+    }
+
+    if (ingredients.length >= MAX_INGREDIENTS) {
+      onValidationError?.(
+        `Bạn chỉ có thể nhập tối đa ${MAX_INGREDIENTS} nguyên liệu.`,
+      );
+      return;
+    }
+
     if (
-      !nextIngredient ||
       ingredients.some(
         (ingredient) =>
           ingredient.toLocaleLowerCase("vi") ===
           nextIngredient.toLocaleLowerCase("vi"),
       )
     ) {
+      onValidationError?.("Nguyên liệu này đã có trong danh sách.");
       setInputValue("");
       return;
     }
@@ -61,6 +85,7 @@ export function IngredientPillInput({
         <input
           id="ingredient-input"
           value={inputValue}
+          maxLength={MAX_INGREDIENT_LENGTH}
           onChange={(event) => setInputValue(event.target.value)}
           onKeyDown={(event) => {
             if (
@@ -76,12 +101,17 @@ export function IngredientPillInput({
         />
       </div>
 
+      <p className="basis-full text-xs text-charcoal/55 sm:text-sm">
+        Tối đa {MAX_INGREDIENTS} nguyên liệu, mỗi nguyên liệu tối đa{" "}
+        {MAX_INGREDIENT_LENGTH} ký tự.
+      </p>
+
       {ingredients.map((ingredient) => (
         <span
           key={ingredient}
-          className="inline-flex items-center gap-2 rounded-full bg-sage/25 px-4 py-2 text-sm font-medium text-charcoal sm:text-base"
+          className="inline-flex max-w-full items-center gap-2 rounded-full bg-sage/25 px-4 py-2 text-sm font-medium text-charcoal sm:text-base"
         >
-          {ingredient}
+          <span className="min-w-0 break-words">{ingredient}</span>
           <button
             type="button"
             aria-label={`Xóa nguyên liệu ${ingredient}`}

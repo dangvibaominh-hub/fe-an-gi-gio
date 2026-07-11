@@ -20,6 +20,7 @@ import { ApiRequestError } from "@/lib/api/errors";
 import { createChatConversation } from "@/lib/api/chat";
 import { getRecipeBySlug } from "@/lib/api/recipes";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { resolveRecipeImage } from "@/lib/recipeImages";
 import type { ChatMessage } from "@/lib/types/chat";
 import type { RecipeDetail } from "@/lib/types/recipe";
 
@@ -655,7 +656,7 @@ function ChatRecipeCard({ recipe, reference }: ChatRecipeCardProps) {
       <div className="grid grid-cols-[88px_1fr] gap-3 p-3">
         <div className="relative h-20 overflow-hidden rounded-2xl bg-white">
           <Image
-            src={recipe.image}
+            src={resolveRecipeImage(recipe.image)}
             alt={recipe.imageAlt}
             fill
             sizes="88px"

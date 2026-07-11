@@ -85,7 +85,7 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
   return (
     <>
       <section className="mx-auto w-full max-w-7xl px-4 pb-10 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pb-14">
-        <div className="max-w-4xl">
+        <div className="w-full">
           <h1 className="flex flex-wrap items-center gap-x-4 gap-y-3 text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
             <span>Hôm nay nấu với</span>
             <RotatingText
@@ -107,21 +107,13 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
               rotationInterval={2000}
             />
           </h1>
-          <div className="mt-8 grid w-fit max-w-full">
-            <div
-              aria-hidden="true"
-              className="invisible col-start-1 row-start-1 flex flex-wrap items-center gap-x-4 gap-y-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
-            >
-              <span>Hôm nay nấu với</span>
-              <span className="rounded-2xl px-4 py-1 sm:px-5 sm:py-1.5">
-                rau muống
-              </span>
-            </div>
-            <div className="col-start-1 row-start-1 w-full">
+          <div className="mt-8 flex w-full flex-col items-center">
+            <div className="w-full">
               {ingredients ? (
                 <IngredientPillInput
                   ingredients={ingredients}
                   onIngredientsChange={handleIngredientsChange}
+                  onValidationError={setErrorMessage}
                 />
               ) : (
                 <div
@@ -129,6 +121,17 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
                   className="min-h-32 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5"
                 />
               )}
+            </div>
+
+            <div className="mt-6 flex w-full justify-center">
+              <ButtonPrimary
+                type="button"
+                disabled={isSearching}
+                onClick={handleSearch}
+                className="min-w-56"
+              >
+                {isSearching ? "Đang chuyển trang..." : "Tìm món ngay"}
+              </ButtonPrimary>
             </div>
           </div>
         </div>
@@ -182,23 +185,11 @@ export function HomePageClient({ recipes }: HomePageClientProps) {
             logoHeight={1}
             gap={20}
             hoverSpeed={0}
-            draggable
             ariaLabel="Danh mục cách chế biến"
             className="category-card-loop"
           />
         </div>
       </section>
-
-      <div className="mx-auto flex w-full max-w-7xl justify-center px-4 pb-20 sm:px-6 lg:px-8">
-        <ButtonPrimary
-          type="button"
-          disabled={isSearching}
-          onClick={handleSearch}
-          className="min-w-56"
-        >
-          {isSearching ? "Đang chuyển trang..." : "Tìm món ngay"}
-        </ButtonPrimary>
-      </div>
 
       {errorMessage ? <Toast message={errorMessage} /> : null}
     </>
