@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { Clock3 } from "lucide-react";
 import { useState } from "react";
 
 import type { RecipeIngredient, RecipeStep } from "@/lib/types/recipe";
@@ -15,7 +16,6 @@ export interface CookingStepContentProps {
   recipeImageAlt: string;
   step: RecipeStep;
   stepNumber: number;
-  totalSteps: number;
   timerPanel?: ReactNode;
 }
 
@@ -26,30 +26,48 @@ export function CookingStepContent({
   recipeImageAlt,
   step,
   stepNumber,
-  totalSteps,
   timerPanel,
 }: CookingStepContentProps) {
-  const [openTermKey, setOpenTermKey] = useState<string | null>(null);
-  const title = getStepTitle(step.content, stepNumber);
+  const cookingNotes = getCookingNotes(step.content, cookingTerms);
+  const [checkedIngredients, setCheckedIngredients] = useState<
+    Record<string, boolean>
+  >(() =>
+    Object.fromEntries(
+      ingredients.map((ingredient) => [ingredient.id, ingredient.haveIt]),
+    ),
+  );
+  const stepIngredients = ingredients.slice(0, 3);
+
+  function toggleIngredient(id: string) {
+    setCheckedIngredients((currentState) => ({
+      ...currentState,
+      [id]: !currentState[id],
+    }));
+  }
 
   return (
-    <article className="grid h-full min-h-0 w-full grid-rows-[auto_auto_auto_auto]">
-      <div className="mt-4 flex min-w-0 items-start justify-start gap-3">
-        <span className="shrink-0 whitespace-nowrap text-xl font-bold leading-tight text-charcoal sm:text-2xl lg:text-3xl">
-          Bước {stepNumber} / {totalSteps}:
-        </span>
+    <article className="flex h-full min-h-0 w-full flex-col justify-center">
+      <div className="grid min-h-0 gap-x-3 gap-y-3 sm:grid-cols-[minmax(8rem,16rem)_minmax(0,1fr)] lg:grid-cols-[minmax(9rem,18rem)_minmax(0,1fr)_minmax(240px,320px)]">
+        <div className="sm:col-span-2 lg:col-span-2">
+          <section className="h-fit w-full self-start rounded-2xl bg-white p-4 shadow-warm">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-charcoal/60">
+            Bước {stepNumber}
+          </p>
 
-        <h1 className="min-w-0 text-xl font-bold leading-tight text-terracotta sm:text-2xl lg:text-3xl">
-          {title}
-        </h1>
-      </div>
+          <h1 className="mt-3 flex min-w-0 items-baseline gap-3 break-words text-xl font-bold leading-tight text-terracotta sm:text-xl lg:text-2xl">
+            <span className="min-w-0 break-words">
+              {renderStepTitle(step.content, stepNumber)}
+            </span>
+          </h1>
 
-      <p className="mt-0.5 text-sm font-medium leading-5 text-charcoal/70">
-        Bước {stepNumber} cần khoảng {step.estimatedMinutes} phút.
-      </p>
+          <span className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-terracotta/10 px-3 py-1.5 text-sm font-semibold text-charcoal">
+            <Clock3 aria-hidden="true" className="size-4 text-terracotta" />
+            {step.estimatedMinutes} phút
+          </span>
+          </section>
 
-      <div className="mt-2 grid min-h-0 gap-3 sm:grid-cols-[minmax(8rem,16rem)_minmax(0,1fr)] sm:grid-rows-[minmax(0,16rem)] lg:grid-cols-[minmax(9rem,18rem)_minmax(0,1fr)_minmax(240px,320px)] lg:grid-rows-[minmax(0,18rem)]">
-        <div className="relative aspect-square min-h-0 w-full overflow-hidden rounded-lg bg-charcoal/10 sm:h-full">
+          <div className="mt-2 grid min-h-0 gap-x-3 gap-y-3 sm:grid-cols-[minmax(8rem,16rem)_minmax(0,1fr)] sm:grid-rows-[minmax(0,16rem)] lg:grid-cols-[minmax(9rem,18rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,18rem)]">
+            <div className="relative aspect-square min-h-0 w-full overflow-hidden rounded-lg bg-charcoal/10 sm:h-full">
           <Image
             src={recipeImage}
             alt={recipeImageAlt}
@@ -58,114 +76,117 @@ export function CookingStepContent({
             sizes="(max-width: 639px) 100vw, (max-width: 1023px) 16rem, 18rem"
             className="object-cover"
           />
+            </div>
+
+            <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-terracotta/15 bg-white p-4 shadow-warm">
+          <div className="grid min-h-0 gap-4 md:grid-cols-2">
+            <div aria-labelledby="needed-ingredients">
+              <h2
+                id="needed-ingredients"
+                className="text-sm font-bold uppercase tracking-wide text-terracotta"
+              >
+                Nguyên liệu
+              </h2>
+              <ul className="mt-3 space-y-1.5">
+                {stepIngredients.map((ingredient) => {
+                  const isChecked = checkedIngredients[ingredient.id] ?? false;
+
+                  return (
+                    <li key={ingredient.id}>
+                      <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-sage/10">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleIngredient(ingredient.id)}
+                          className="size-5 shrink-0 rounded border-terracotta/30 accent-sage"
+                        />
+                        <span
+                          className={
+                            isChecked
+                              ? "min-w-0 text-charcoal/55 line-through"
+                              : "min-w-0 text-charcoal"
+                          }
+                        >
+                          {formatIngredientAmount(ingredient)}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <aside className="flex h-full flex-col border-t border-terracotta/10 pt-4 md:border-l md:border-t-0 md:pl-4 md:pt-0">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-terracotta">Ghi chú</h3>
+              {cookingNotes.length > 0 ? (
+                <div className="mt-1.5 space-y-1 text-md leading-5 text-charcoal/80">
+                  {cookingNotes.map(({ term, definition }) => (
+                    <p key={term}>
+                      <span className="font-bold text-terracotta text-md">- {term}:</span>{" "}
+                      {definition}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-1.5 text-md leading-5 text-charcoal/55">
+                  Chưa có ghi chú cho bước này.
+                </p>
+              )}
+              {step.isTricky ? (
+                <p className="mt-auto inline-flex items-center gap-2 rounded-full bg-terracotta/15 px-4 py-2 text-xs font-bold text-terracotta">
+                  <span aria-hidden="true">!</span>
+                  Bước này hơi khó, hãy làm chậm và cẩn thận.
+                </p>
+              ) : null}
+            </aside>
+          </div>
+            </section>
+          </div>
         </div>
 
-        <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border p-4 shadow-warm">
-          <div className="shrink-0" aria-labelledby="needed-ingredients">
-            <h2
-              id="needed-ingredients"
-              className="text-xs font-bold uppercase tracking-wide text-charcoal/70"
-            >
-              Nguyên liệu cần dùng ở bước này
-            </h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {ingredients.slice(0, 3).map((ingredient) => (
-                <span
-                  key={ingredient.id}
-                  className="inline-flex min-h-8 items-center rounded-full bg-sage/20 px-3 text-xs font-bold text-charcoal"
-                >
-                  {formatIngredient(ingredient)}
-                </span>
-              ))}
-            </div>
+        {timerPanel ? (
+          <div className="flex justify-center sm:col-span-2 lg:col-start-3 lg:h-full lg:items-center">
+            {timerPanel}
           </div>
-
-          <div className="mt-3 min-h-0 flex-1 overflow-y-auto text-sm font-medium leading-5 text-charcoal lg:leading-6">
-            {renderStepContent({
-              content: step.content,
-              cookingTerms,
-              openTermKey,
-              setOpenTermKey,
-              stepId: step.id,
-            })}
-          </div>
-        </section>
-
-        {timerPanel}
+        ) : null}
       </div>
 
-      {step.isTricky ? (
-        <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-terracotta/15 px-4 py-2 text-xs font-bold text-terracotta">
-          <span aria-hidden="true">!</span>
-          Bước này hơi khó, hãy làm chậm và cẩn thận.
-        </p>
-      ) : null}
     </article>
   );
 }
 
-interface RenderStepContentOptions {
-  content: string;
-  cookingTerms: Record<string, string>;
-  openTermKey: string | null;
-  setOpenTermKey: (key: string | null) => void;
-  stepId: string;
+function renderStepTitle(content: string, stepNumber: number) {
+  const titleContent = content.trim() || `Bước ${stepNumber}`;
+
+  return titleContent.split(TERM_PATTERN).map((part, index) =>
+    index % 2 === 1 ? (
+      <span
+        key={`${part}-${index}`}
+        className="mx-1 inline-flex max-w-full whitespace-normal break-words rounded-2xl bg-terracotta px-4 py-1 text-white sm:px-5 sm:py-1.5"
+      >
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
 }
 
-function renderStepContent({
-  content,
-  cookingTerms,
-  openTermKey,
-  setOpenTermKey,
-  stepId,
-}: RenderStepContentOptions) {
-  return content.split(TERM_PATTERN).map((part, index) => {
-    const definition = cookingTerms[part];
+function getCookingNotes(
+  content: string,
+  cookingTerms: Record<string, string>,
+) {
+  const terms = Array.from(content.matchAll(TERM_PATTERN), (match) =>
+    match[1]?.trim(),
+  ).filter((term): term is string => Boolean(term));
 
-    if (!definition) {
-      return part;
-    }
-
-    const termKey = `${stepId}-${part}-${index}`;
-    const isOpen = openTermKey === termKey;
-
-    return (
-      <span key={termKey} className="relative inline-block">
-        <button
-          type="button"
-          aria-expanded={isOpen}
-          onClick={() => setOpenTermKey(isOpen ? null : termKey)}
-          className="font-bold text-terracotta underline decoration-dotted underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
-        >
-          {part}
-        </button>
-        {isOpen ? (
-          <span
-            role="tooltip"
-            className="absolute bottom-full left-1/2 z-30 mb-2 w-64 -translate-x-1/2 rounded-lg bg-charcoal px-4 py-3 text-left text-sm font-normal leading-5 text-white shadow-xl"
-          >
-            {definition}
-          </span>
-        ) : null}
-      </span>
-    );
+  return [...new Set(terms)].flatMap((term) => {
+    const definition = cookingTerms[term];
+    return definition ? [{ definition, term }] : [];
   });
 }
 
-function getStepTitle(content: string, stepNumber: number) {
-  const cleanContent = content.replace(TERM_PATTERN, "$1").trim();
-  const firstSentence = cleanContent.split(/[.!?。]/)[0]?.trim();
-
-  if (!firstSentence) {
-    return `Bước ${stepNumber}`;
-  }
-
-  return firstSentence.length > 44
-    ? `${firstSentence.slice(0, 42).trim()}...`
-    : firstSentence;
-}
-
-function formatIngredient(ingredient: RecipeIngredient) {
+function formatIngredientAmount(ingredient: RecipeIngredient) {
   const amount = Number.isInteger(ingredient.baseAmount)
     ? ingredient.baseAmount
     : ingredient.baseAmount.toFixed(1);

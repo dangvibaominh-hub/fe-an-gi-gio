@@ -283,7 +283,6 @@ export function CookingModeView({ recipe }: CookingModeViewProps) {
             recipeImageAlt={recipe.imageAlt}
             step={currentStep}
             stepNumber={currentStepNumber}
-            totalSteps={totalSteps}
             timerPanel={
               <CookingTimerPanel
                 key={currentStep.id}
