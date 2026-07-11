@@ -46,7 +46,7 @@ const initialForm = (): AdminRecipeWriteInput => ({
   cookTimeMinutes: 20,
   description: "",
   difficulty: "de",
-  image: "/images/recipes/",
+  image: "",
   imageAlt: "",
   ingredients: [emptyIngredient()],
   slug: "",
@@ -61,7 +61,13 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
   const [slugEdited, setSlugEdited] = useState(Boolean(recipeId));
   const [loading, setLoading] = useState(Boolean(recipeId));
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => () => {
+    if (imagePreview !== null) URL.revokeObjectURL(imagePreview);
+  }, [imagePreview]);
 
   useEffect(() => {
     if (!recipeId) {
@@ -115,13 +121,16 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
     event.preventDefault();
     setSaving(true);
     setError(null);
-    const cleanedForm = cleanRecipeInput(form);
 
     try {
+      if (!form.image && imageFile === null) {
+        throw new Error("Vui lòng chọn ảnh công thức.");
+      }
+      const cleanedForm = cleanRecipeInput(form);
       if (recipeId) {
-        await updateAdminRecipe(recipeId, cleanedForm);
+        await updateAdminRecipe(recipeId, cleanedForm, imageFile);
       } else {
-        await createAdminRecipe(cleanedForm);
+        await createAdminRecipe(cleanedForm, imageFile);
       }
       router.push("/admin/cong-thuc");
       router.refresh();
@@ -189,8 +198,29 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
               onChange={(event) => setForm({ ...form, description: event.target.value })}
               className={fieldClass} />
           </label>
-          <TextField label="Đường dẫn ảnh" value={form.image}
-            onChange={(image) => setForm({ ...form, image })} />
+          <label>
+            <FieldLabel>Ảnh công thức</FieldLabel>
+            <input
+              type="file"
+              required={!recipeId && !form.image}
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+                if (file !== null && file.size > 5 * 1024 * 1024) {
+                  event.target.value = "";
+                  setImageFile(null);
+                  setImagePreview(null);
+                  setError("Ảnh không được vượt quá 5 MB.");
+                  return;
+                }
+                setError(null);
+                setImageFile(file);
+                setImagePreview(file === null ? null : URL.createObjectURL(file));
+              }}
+              className={`${fieldClass} file:mr-3 file:rounded-md file:border-0 file:bg-terracotta/10 file:px-3 file:py-1 file:font-semibold file:text-terracotta`}
+            />
+            <span className="mt-1 block text-xs text-charcoal/50">JPG, PNG hoặc WebP, tối đa 5 MB.</span>
+          </label>
           <TextField label="Mô tả ảnh" value={form.imageAlt} minLength={5}
             onChange={(imageAlt) => setForm({ ...form, imageAlt })} />
           <SelectField label="Danh mục" value={form.categorySlug}
@@ -209,11 +239,11 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
           </div>
           <div className="rounded-2xl border border-terracotta/15 bg-charcoal/[0.025] p-3">
             <div className="aspect-[4/3] overflow-hidden rounded-xl bg-white">
-              {form.image ? (
+              {imagePreview || form.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   alt={form.imageAlt || "Ảnh xem trước công thức"}
-                  src={form.image}
+                  src={imagePreview || form.image}
                   className="size-full object-cover"
                 />
               ) : (
@@ -223,7 +253,7 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
               )}
             </div>
             <p className="mt-3 text-xs leading-5 text-charcoal/55">
-              Nên dùng ảnh ngang, đặt trong <span className="font-semibold">/images/recipes/</span> để catalog tải nhanh.
+              Nên dùng ảnh ngang. Ảnh sẽ được tải lên kho lưu trữ khi lưu công thức.
             </p>
           </div>
         </div>
