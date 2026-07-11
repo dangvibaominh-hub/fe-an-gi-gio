@@ -12,6 +12,7 @@ type HttpMethod = "DELETE" | "GET" | "PATCH" | "POST";
 
 interface AuthorizedRequestOptions {
   body?: unknown;
+  contentType?: string;
   method: HttpMethod;
   path: string;
 }
@@ -53,17 +54,24 @@ export async function authorizedRequest<T>(
 async function sendAuthorizedRequest<T>({
   accessToken,
   body,
+  contentType,
   method,
   path,
 }: AuthorizedRequestOptions & {
   accessToken: string;
 }): Promise<T> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined
+      ? undefined
+      : body instanceof Blob || body instanceof FormData
+        ? body
+        : JSON.stringify(body),
     cache: "no-store",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...(body === undefined || body instanceof FormData
+        ? {}
+        : { "Content-Type": contentType ?? "application/json" }),
     },
     method,
   });
