@@ -9,6 +9,7 @@ import {
   AdminPagination,
 } from "@/components/admin/AdminPageState";
 import { hideAdminRecipe, listAdminRecipes } from "@/lib/api/admin";
+import { Toast } from "@/components/ui/Toast";
 import type {
   AdminRecipe,
   RecipeSource,
@@ -25,6 +26,19 @@ export function AdminRecipeList() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    const message = sessionStorage.getItem("admin-recipe-toast");
+    if (!message) return;
+    sessionStorage.removeItem("admin-recipe-toast");
+    const showTimeout = window.setTimeout(() => setToast(message), 0);
+    const hideTimeout = window.setTimeout(() => setToast(null), 3500);
+    return () => {
+      window.clearTimeout(showTimeout);
+      window.clearTimeout(hideTimeout);
+    };
+  }, []);
 
   const fetchRecipes = useCallback(() => {
     return listAdminRecipes({
@@ -76,6 +90,8 @@ export function AdminRecipeList() {
     try {
       await hideAdminRecipe(recipe.id);
       await load();
+      setToast("Ẩn công thức thành công.");
+      window.setTimeout(() => setToast(null), 3500);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     } finally {
@@ -172,6 +188,12 @@ export function AdminRecipeList() {
                           href={`/admin/cong-thuc/${recipe.id}`}
                           className="rounded-lg border border-terracotta/25 px-3 py-2 font-semibold text-terracotta"
                         >
+                          Xem
+                        </Link>
+                        <Link
+                          href={`/admin/cong-thuc/${recipe.id}/chinh-sua`}
+                          className="rounded-lg border border-mustard/40 px-3 py-2 font-semibold text-charcoal"
+                        >
                           Sửa
                         </Link>
                         {recipe.status !== "HIDDEN" ? (
@@ -201,6 +223,7 @@ export function AdminRecipeList() {
           onPageChange={setPage}
         />
       ) : null}
+      {toast ? <Toast message={toast} /> : null}
     </section>
   );
 }
@@ -238,8 +261,13 @@ function StatusBadge({ status }: { status: RecipeStatus }) {
     HIDDEN: "Đã ẩn",
     PUBLISHED: "Đã xuất bản",
   };
+  const colors = {
+    DRAFT: "bg-mustard/20 text-charcoal",
+    HIDDEN: "bg-charcoal/10 text-charcoal/70",
+    PUBLISHED: "bg-sage/25 text-charcoal",
+  };
   return (
-    <span className="rounded-full bg-charcoal/[0.06] px-3 py-1 text-xs font-semibold">
+    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${colors[status]}`}>
       {labels[status]}
     </span>
   );

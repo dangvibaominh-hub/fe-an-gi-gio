@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
-import { AdminRecipeForm } from "@/components/admin/AdminRecipeForm";
+import { AdminRecipeDetailView } from "@/components/admin/AdminRecipeDetailView";
 
-export const metadata: Metadata = { title: "Chỉnh sửa công thức" };
+export const metadata: Metadata = { title: "Chi tiết công thức" };
 
-export default async function EditAdminRecipePage({
+export default async function AdminRecipeDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <AdminRecipeForm recipeId={id} />;
+  return <AdminRecipeDetailView recipeId={id} />;
 }

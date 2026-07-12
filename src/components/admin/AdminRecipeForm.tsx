@@ -58,7 +58,6 @@ const initialForm = (): AdminRecipeWriteInput => ({
 export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
   const router = useRouter();
   const [form, setForm] = useState<AdminRecipeWriteInput>(initialForm);
-  const [slugEdited, setSlugEdited] = useState(Boolean(recipeId));
   const [loading, setLoading] = useState(Boolean(recipeId));
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -103,7 +102,6 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
           })),
           title: recipe.title,
         });
-        setSlugEdited(true);
       })
       .catch((requestError: unknown) => {
         if (!cancelled) setError(getErrorMessage(requestError));
@@ -132,6 +130,10 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
       } else {
         await createAdminRecipe(cleanedForm, imageFile);
       }
+      sessionStorage.setItem(
+        "admin-recipe-toast",
+        recipeId ? "Cập nhật công thức thành công." : "Tạo công thức thành công.",
+      );
       router.push("/admin/cong-thuc");
       router.refresh();
     } catch (requestError) {
@@ -177,20 +179,18 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
 
       {error ? <AdminError message={error} /> : null}
 
-      <FormSection title="Thông tin cơ bản">
+      <FormSection number="01" title="Thông tin cơ bản" description="Tên món, mô tả và ảnh đại diện hiển thị cho người dùng.">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
-          <TextField label="Tên công thức" value={form.title} minLength={5}
+          <div className="md:col-span-2">
+          <TextField label="Tên công thức" value={form.title} minLength={5} maxLength={200}
             onChange={(title) => setForm({
               ...form,
-              slug: slugEdited ? form.slug : slugify(title),
+              slug: recipeId ? form.slug : slugify(title),
               title,
             })} />
-          <TextField label="Slug" value={form.slug} pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            onChange={(slug) => {
-              setSlugEdited(true);
-              setForm({ ...form, slug: slugify(slug) });
-            }} />
+          </div>
           <label className="md:col-span-2">
             <FieldLabel>Mô tả</FieldLabel>
             <textarea required minLength={10} maxLength={1000} rows={4}
@@ -198,6 +198,11 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
               onChange={(event) => setForm({ ...form, description: event.target.value })}
               className={fieldClass} />
           </label>
+          </div>
+
+          <div className="rounded-2xl bg-cream/60 p-4">
+            <p className="mb-4 text-sm font-bold uppercase tracking-wide text-charcoal/55">Ảnh đại diện</p>
+            <div className="grid gap-4 md:grid-cols-2">
           <label>
             <FieldLabel>Ảnh công thức</FieldLabel>
             <input
@@ -221,23 +226,31 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
             />
             <span className="mt-1 block text-xs text-charcoal/50">JPG, PNG hoặc WebP, tối đa 5 MB.</span>
           </label>
-          <TextField label="Mô tả ảnh" value={form.imageAlt} minLength={5}
+          <TextField label="Mô tả ảnh" value={form.imageAlt} minLength={5} maxLength={250}
             onChange={(imageAlt) => setForm({ ...form, imageAlt })} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-cream/60 p-4">
+            <p className="mb-4 text-sm font-bold uppercase tracking-wide text-charcoal/55">Phân loại và định lượng</p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <SelectField label="Danh mục" value={form.categorySlug}
             onChange={(categorySlug) => setForm({ ...form, categorySlug })}
             options={categories} />
           <SelectField label="Độ khó" value={form.difficulty}
             onChange={(difficulty) => setForm({ ...form, difficulty: difficulty as AdminRecipeWriteInput["difficulty"] })}
             options={[["de", "Dễ"], ["trung-binh", "Trung bình"], ["kho", "Khó"]]} />
-          <NumberField label="Thời gian (phút)" value={form.cookTimeMinutes} min={1}
+          <NumberField label="Thời gian (phút)" value={form.cookTimeMinutes} min={1} max={1440}
             onChange={(cookTimeMinutes) => setForm({ ...form, cookTimeMinutes })} />
-          <NumberField label="Khẩu phần" value={form.baseServings} min={1}
+          <NumberField label="Khẩu phần" value={form.baseServings} min={1} max={100}
             onChange={(baseServings) => setForm({ ...form, baseServings })} />
           <SelectField label="Trạng thái" value={form.status}
             onChange={(status) => setForm({ ...form, status: status as AdminRecipeWriteInput["status"] })}
             options={[["DRAFT", "Bản nháp"], ["PUBLISHED", "Xuất bản"], ["HIDDEN", "Ẩn"]]} />
+            </div>
           </div>
-          <div className="rounded-2xl border border-terracotta/15 bg-charcoal/[0.025] p-3">
+          </div>
+          <div className="h-fit rounded-2xl border border-terracotta/15 bg-charcoal/[0.025] p-3 lg:sticky lg:top-6">
             <div className="aspect-[4/3] overflow-hidden rounded-xl bg-white">
               {imagePreview || form.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -260,44 +273,53 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
       </FormSection>
 
       <FormSection
+        number="02"
         title="Nguyên liệu"
+        description={`${form.ingredients.length} nguyên liệu · Có thể kéo thứ tự bằng nút Lên/Xuống.`}
         actionLabel="Thêm nguyên liệu"
         onAction={() => setForm({ ...form, ingredients: [...form.ingredients, emptyIngredient()] })}
       >
         <div className="space-y-3">
           {form.ingredients.map((ingredient, index) => (
-            <div key={index} className="grid gap-3 rounded-2xl border border-charcoal/5 bg-charcoal/[0.025] p-4 md:grid-cols-[2fr_1fr_1fr_2fr_auto]">
-              <TextField label="Tên" value={ingredient.name}
+            <div key={index} className="rounded-2xl border border-terracotta/10 bg-cream/40 p-4">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <p className="flex items-center gap-2 font-bold"><span className="flex size-7 items-center justify-center rounded-full bg-terracotta/10 text-sm text-terracotta">{index + 1}</span> Nguyên liệu {index + 1}</p>
+                <RowActions
+                  canMoveDown={index < form.ingredients.length - 1}
+                  canMoveUp={index > 0}
+                  disableRemove={form.ingredients.length === 1}
+                  onMoveDown={() => setForm({ ...form, ingredients: moveItem(form.ingredients, index, index + 1) })}
+                  onMoveUp={() => setForm({ ...form, ingredients: moveItem(form.ingredients, index, index - 1) })}
+                  onRemove={() => setForm({ ...form, ingredients: form.ingredients.filter((_, itemIndex) => itemIndex !== index) })}
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1.2fr_2fr]">
+              <TextField label="Tên" value={ingredient.name} maxLength={150}
                 onChange={(value) => updateIngredient(index, { name: value })} />
-              <NumberField label="Lượng" value={ingredient.amount} min={0.01} step="any"
+              <NumberField label="Lượng" value={ingredient.amount} min={0.01} max={100000} step="any"
                 onChange={(value) => updateIngredient(index, { amount: value })} />
-              <TextField label="Đơn vị" value={ingredient.unit}
+              <UnitField value={ingredient.unit}
                 onChange={(value) => updateIngredient(index, { unit: value })} />
-              <TextField label="Sơ chế" value={ingredient.prepNote} required={false}
+              <TextField label="Sơ chế" value={ingredient.prepNote} required={false} maxLength={200}
                 onChange={(value) => updateIngredient(index, { prepNote: value })} />
-              <RowActions
-                canMoveDown={index < form.ingredients.length - 1}
-                canMoveUp={index > 0}
-                disableRemove={form.ingredients.length === 1}
-                onMoveDown={() => setForm({ ...form, ingredients: moveItem(form.ingredients, index, index + 1) })}
-                onMoveUp={() => setForm({ ...form, ingredients: moveItem(form.ingredients, index, index - 1) })}
-                onRemove={() => setForm({ ...form, ingredients: form.ingredients.filter((_, itemIndex) => itemIndex !== index) })}
-              />
+              </div>
             </div>
           ))}
         </div>
       </FormSection>
 
       <FormSection
+        number="03"
         title="Các bước nấu"
+        description={`${form.steps.length} bước · Viết mỗi bước thành một thao tác rõ ràng.`}
         actionLabel="Thêm bước"
         onAction={() => setForm({ ...form, steps: [...form.steps, emptyStep()] })}
       >
         <div className="space-y-3">
           {form.steps.map((step, index) => (
-            <div key={index} className="rounded-2xl border border-charcoal/5 bg-charcoal/[0.025] p-4">
+            <div key={index} className="rounded-2xl border border-terracotta/10 bg-cream/40 p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="font-semibold">Bước {index + 1}</p>
+                <p className="flex items-center gap-2 font-bold"><span className="flex size-7 items-center justify-center rounded-full bg-terracotta/10 text-sm text-terracotta">{index + 1}</span> Bước {index + 1}</p>
                 <RowActions
                   canMoveDown={index < form.steps.length - 1}
                   canMoveUp={index > 0}
@@ -313,12 +335,12 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
                 onChange={(event) => updateStep(index, { content: event.target.value })}
                 className={fieldClass} />
               <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <NumberField label="Số phút" value={step.estimatedMinutes} min={0}
+                <NumberField label="Số phút" value={step.estimatedMinutes} min={0} max={240}
                   onChange={(value) => updateStep(index, { estimatedMinutes: value })} />
                 <SelectField label="Kỹ thuật" value={step.techniqueIcon}
                   onChange={(value) => updateStep(index, { techniqueIcon: value as AdminRecipeStepInput["techniqueIcon"] })}
                   options={[["dao", "Dao"], ["chao", "Chảo"], ["noi", "Nồi"], ["tron", "Trộn"], ["hap", "Hấp"]]} />
-                <NumberField label="Hẹn giờ (giây)" value={step.timerSeconds ?? 0} min={0}
+                <NumberField label="Hẹn giờ (giây)" value={step.timerSeconds ?? 0} min={0} max={86400}
                   onChange={(value) => updateStep(index, { timerSeconds: value > 0 ? value : null })} />
                 <label className="flex min-h-[72px] items-end gap-2 rounded-xl border border-terracotta/15 bg-white px-3 py-3 text-sm font-medium">
                   <input type="checkbox" checked={step.isTricky}
@@ -352,18 +374,23 @@ export function AdminRecipeForm({ recipeId }: { recipeId?: string }) {
 }
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-terracotta/20 bg-white px-3 py-2.5 outline-none transition focus:border-terracotta focus:ring-2 focus:ring-terracotta/10";
+  "mt-1.5 w-full rounded-xl border border-terracotta/20 bg-white px-3.5 py-3 outline-none transition placeholder:text-charcoal/30 hover:border-terracotta/35 focus:border-terracotta focus:ring-2 focus:ring-terracotta/10";
 
-function FormSection({ actionLabel, children, onAction, title }: {
+function FormSection({ actionLabel, children, description, number, onAction, title }: {
   actionLabel?: string;
   children: React.ReactNode;
+  description: string;
+  number: string;
   onAction?: () => void;
   title: string;
 }) {
   return (
     <section className="rounded-2xl border border-terracotta/15 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h3 className="text-lg font-bold">{title}</h3>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-terracotta/10 pb-5">
+        <div className="flex gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-terracotta text-sm font-bold text-white">{number}</span>
+          <div><h3 className="text-lg font-bold">{title}</h3><p className="mt-1 text-sm text-charcoal/55">{description}</p></div>
+        </div>
         {onAction ? (
           <button type="button" onClick={onAction}
             className="rounded-lg bg-sage/15 px-3 py-2 text-sm font-semibold text-charcoal transition hover:bg-sage/25">
@@ -386,6 +413,7 @@ function TextField({ label, onChange, required = true, value, ...props }: {
   required?: boolean;
   value: string;
   minLength?: number;
+  maxLength?: number;
   pattern?: string;
 }) {
   return (
@@ -397,9 +425,10 @@ function TextField({ label, onChange, required = true, value, ...props }: {
   );
 }
 
-function NumberField({ label, min, onChange, step, value }: {
+function NumberField({ label, max, min, onChange, step, value }: {
   label: string;
   min: number;
+  max?: number;
   onChange: (value: number) => void;
   step?: string;
   value: number;
@@ -407,8 +436,23 @@ function NumberField({ label, min, onChange, step, value }: {
   return (
     <label>
       <FieldLabel>{label}</FieldLabel>
-      <input type="number" required min={min} step={step ?? 1} value={Number.isNaN(value) ? "" : value}
+      <input type="number" required min={min} max={max} step={step ?? 1} value={Number.isNaN(value) ? "" : value}
         onChange={(event) => onChange(event.target.value === "" ? min : Number(event.target.value))} className={fieldClass} />
+    </label>
+  );
+}
+
+const units = ["g", "kg", "ml", "l", "muỗng cà phê", "muỗng canh", "chén", "tô", "cái", "quả", "trái", "củ", "nhánh", "tép", "lá", "miếng", "lát", "bó", "gói", "hộp", "lon", "chai", "ít", "vừa đủ"] as const;
+
+function UnitField({ onChange, value }: { onChange: (value: string) => void; value: string }) {
+  return (
+    <label>
+      <FieldLabel>Đơn vị</FieldLabel>
+      <select required value={value} onChange={(event) => onChange(event.target.value)} className={fieldClass}>
+        <option value="" disabled>Chọn đơn vị</option>
+        {!units.includes(value as (typeof units)[number]) && value ? <option value={value}>{value}</option> : null}
+        {units.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+      </select>
     </label>
   );
 }

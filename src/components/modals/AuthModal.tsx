@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
+import { useRouter } from "next/navigation";
 
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { ModalBase } from "@/components/modals/ModalBase";
@@ -38,6 +39,7 @@ export function AuthModal({
   onClose,
 }: AuthModalProps) {
   const { login, register } = useAuth();
+  const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("login");
   const [formValues, setFormValues] = useState(INITIAL_FORM_VALUES);
   const [errors, setErrors] = useState<AuthErrors>({});
@@ -112,7 +114,10 @@ export function AuthModal({
           formValues.name.trim(),
         );
       } else {
-        await login(formValues.email.trim(), formValues.password);
+        const user = await login(formValues.email.trim(), formValues.password);
+        if (user.role === "ADMIN") {
+          router.push("/admin");
+        }
       }
 
       setFormValues(INITIAL_FORM_VALUES);
@@ -244,9 +249,12 @@ export function AuthModal({
 
             <GoogleSignInButton
               disabled={isSubmitting}
-              onAuthenticated={() => {
+              onAuthenticated={(user) => {
                 setFormError(null);
                 onAuthenticated?.("login");
+                if (user.role === "ADMIN") {
+                  router.push("/admin");
+                }
               }}
               onError={setFormError}
             />
