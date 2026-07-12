@@ -3,12 +3,19 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  ChefHat,
+  Clock3,
+  CookingPot,
+  PackageCheck,
+  type LucideIcon,
+} from "lucide-react";
 
-import { ConfidenceProgressBar } from "@/components/profile/ConfidenceProgressBar";
 import { InsightCard } from "@/components/profile/InsightCard";
 import { ButtonPrimary } from "@/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/components/ui/ButtonSecondary";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SpotlightCard } from "@/components/ui/SpotlightCard";
 import { Toast } from "@/components/ui/Toast";
 import { getPersonalization, updateProfile } from "@/lib/api/me";
 import { ApiRequestError } from "@/lib/api/errors";
@@ -25,14 +32,37 @@ const PROFILE_TABS: ReadonlyArray<{
   id: ProfileTab;
   label: string;
 }> = [
-  { href: "/ho-so", id: "thong-tin", label: "Thông tin cá nhân" },
-  {
-    href: "/ho-so?tab=ca-nhan-hoa",
-    id: "ca-nhan-hoa",
-    label: "Cá nhân hóa",
-  },
-  { href: "/ho-so?tab=cai-dat", id: "cai-dat", label: "Cài đặt" },
-];
+    { href: "/ho-so", id: "thong-tin", label: "Thông tin cá nhân" },
+    {
+      href: "/ho-so?tab=ca-nhan-hoa",
+      id: "ca-nhan-hoa",
+      label: "Cá nhân hóa",
+    },
+    { href: "/ho-so?tab=cai-dat", id: "cai-dat", label: "Cài đặt" },
+  ];
+
+const SIGNAL_DETAILS: ReadonlyArray<{
+  description: string;
+  icon: LucideIcon;
+  key: keyof PersonalizationInsight["signals"];
+  label: string;
+}> = [
+  { key: "preferEasyRecipes", label: "Công thức dễ thực hiện", description: "Ưu tiên các bước đơn giản, dễ theo dõi.", icon: ChefHat },
+  { key: "preferQuickRecipes", label: "Món nấu nhanh", description: "Ưu tiên thời gian chuẩn bị và nấu ngắn hơn.", icon: Clock3 },
+  { key: "preferIngredientFit", label: "Tận dụng nguyên liệu sẵn có", description: "Ưu tiên món phù hợp với nguyên liệu bạn có.", icon: PackageCheck },
+  { key: "preferTechniqueGuidance", label: "Hướng dẫn kỹ thuật rõ ràng", description: "Bổ sung mẹo và hướng dẫn thao tác chi tiết hơn.", icon: CookingPot },
+  ];
+
+const ISSUE_LABELS: Readonly<Record<string, string>> = {
+  "cutting-meat-hard": "Cắt thịt khó",
+  "hard-to-follow-steps": "Khó theo dõi các bước",
+  "ingredients-overcooked": "Nguyên liệu bị quá chín",
+  "missing-ingredients": "Thiếu nguyên liệu",
+  "oil-splatter": "Chiên bị bắn dầu",
+  "pan-sticking-or-burning": "Chảo bị dính hoặc cháy",
+  "taste-not-right": "Hương vị chưa đúng ý",
+  "took-longer-than-expected": "Mất nhiều thời gian hơn dự kiến",
+};
 
 export function ProfileView() {
   const searchParams = useSearchParams();
@@ -80,7 +110,7 @@ export function ProfileView() {
 
   return (
     <ProfilePageShell>
-      <h1 className="text-4xl font-medium tracking-tight text-charcoal sm:text-5xl">
+      <h1 className="text-4xl font-bold tracking-tight text-terracotta sm:text-5xl lg:text-6xl">
         Hồ sơ của bạn
       </h1>
       <p className="mt-3 text-sm text-charcoal/70 sm:text-base">
@@ -129,7 +159,7 @@ export function ProfileView() {
 function ProfilePageShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-[calc(100vh-80px)] bg-[#fff8ec]">
-      <section className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
         {children}
       </section>
     </main>
@@ -295,14 +325,19 @@ function PersonalizationPanel() {
   }, []);
 
   const visibleInsights = (insight?.insights ?? []).slice(0, 3);
+  const activeSignals = insight
+    ? SIGNAL_DETAILS.filter(({ key }) => insight.signals[key] > 0)
+    : [];
+  const recurringIssues = insight
+    ? Object.entries(insight.issueCounts)
+      .filter(([, count]) => count > 0)
+      .sort(([, leftCount], [, rightCount]) => rightCount - leftCount)
+      .slice(0, 3)
+    : [];
 
   return (
     <>
       <h2 className="text-2xl font-bold text-charcoal">Cá nhân hóa</h2>
-      <p className="mt-2 text-sm text-charcoal/70">
-        Ăn Gì Giờ? học từ đánh giá sau mỗi lần nấu để gợi ý phù hợp hơn.
-      </p>
-
       <div className="mt-8">
         {isLoading ? (
           <div className="grid min-h-40 place-items-center rounded-2xl border border-dashed border-terracotta/30 text-charcoal/70">
@@ -319,38 +354,118 @@ function PersonalizationPanel() {
           />
         ) : (
           <div className="space-y-8">
-            <ConfidenceProgressBar confidence={insight.confidence} />
-
-            <div>
-              <h3 className="text-lg font-semibold text-charcoal">
-                Điều chỉnh gần đây
+            <section className="overflow-hidden rounded-2xl border border-terracotta/20 bg-white p-6 text-terracotta shadow-warm sm:p-7">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-terracotta/70">
+                Hồ sơ gợi ý của bạn
+              </p>
+              <h3 className="mt-2 text-2xl font-bold">
+                Ăn Gì Giờ? đang học từ những lần bạn nấu.
               </h3>
-              <div className="mt-4 space-y-4">
-                {visibleInsights.length > 0 ? (
-                  visibleInsights.map((message) => (
-                    <InsightCard key={message} message={message} />
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-charcoal/70 sm:text-base">
+                Mỗi feedback giúp công thức và hướng dẫn lần sau phù hợp với bạn hơn.
+              </p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <PersonalizationStat label="Feedback đã gửi" value={String(insight.feedbackCount)} />
+                <PersonalizationStat label="Điểm trung bình" value={insight.averageRating > 0 ? `${insight.averageRating.toFixed(1)} / 5` : "Chưa có"} />
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-semibold text-charcoal">
+                Điều hệ thống đang ưu tiên
+              </h3>
+              <p className="mt-1 text-sm text-charcoal/65">
+                Những thay đổi sẽ ảnh hưởng đến gợi ý món và cách hướng dẫn.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {activeSignals.length > 0 ? (
+                  activeSignals.map(({ description, icon: Icon, key, label }) => (
+                    <SpotlightCard
+                      key={key}
+                      spotlightColor="rgba(116, 155, 120, 0.28)"
+                      className="rounded-2xl border border-sage/30 bg-sage/10 p-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-sage/25 text-charcoal">
+                          <Icon aria-hidden="true" className="size-5" strokeWidth={2} />
+                        </span>
+                        <div>
+                          <p className="font-semibold text-charcoal">{label}</p>
+                          <p className="mt-1 text-sm leading-6 text-charcoal/70">{description}</p>
+                        </div>
+                      </div>
+                    </SpotlightCard>
                   ))
                 ) : (
-                  <p className="text-sm text-charcoal/70">
-                    Tiếp tục nấu và đánh giá để nhận thêm gợi ý cá nhân hóa.
-                  </p>
+                  <SpotlightCard
+                    spotlightColor="rgba(209, 103, 75, 0.16)"
+                    className="rounded-2xl border border-dashed border-terracotta/30 bg-white/70 p-5 sm:col-span-2"
+                  >
+                    <p className="font-semibold text-charcoal">Chưa có sở thích nổi bật</p>
+                    <p className="mt-1 text-sm leading-6 text-charcoal/70">
+                      Bạn đã gửi đánh giá, nhưng chưa có một xu hướng đủ rõ để ưu tiên. Hãy chọn các thẻ phản hồi cụ thể khi đánh giá để gợi ý thay đổi rõ rệt hơn.
+                    </p>
+                  </SpotlightCard>
                 )}
               </div>
-            </div>
+            </section>
 
-            <div className="rounded-2xl bg-cream/50 p-5 text-sm text-charcoal/75">
-              <p>
-                Đã nhận <strong>{insight.feedbackCount}</strong> đánh giá
-                {insight.averageRating > 0
-                  ? ` · Trung bình ${insight.averageRating.toFixed(1)} sao`
-                  : ""}
-                .
-              </p>
-            </div>
+            <section className="grid gap-6 lg:grid-cols-2">
+              <div>
+                <h3 className="text-lg font-semibold text-charcoal">Điều chỉnh gần đây</h3>
+                <div className="mt-4 space-y-4">
+                  {visibleInsights.length > 0 ? (
+                    visibleInsights.map((message) => <InsightCard key={message} message={message} />)
+                  ) : (
+                    <SpotlightCard
+                      spotlightColor="rgba(209, 103, 75, 0.16)"
+                      className="rounded-2xl border border-dashed border-terracotta/30 p-5 text-sm leading-6 text-charcoal/70"
+                    >
+                      Chưa có điều chỉnh cụ thể. Các gợi ý sẽ xuất hiện ở đây khi hệ thống nhận thấy một xu hướng rõ ràng.
+                    </SpotlightCard>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-charcoal">Điểm cần lưu ý khi nấu</h3>
+                <SpotlightCard
+                  spotlightColor="rgba(209, 103, 75, 0.14)"
+                  className="mt-4 rounded-2xl bg-cream/50 p-5"
+                >
+                  {recurringIssues.length > 0 ? (
+                    <ul className="space-y-3">
+                      {recurringIssues.map(([issue, count]) => (
+                        <li key={issue} className="flex items-center justify-between gap-3 text-sm text-charcoal">
+                          <span>{ISSUE_LABELS[issue] ?? issue}</span>
+                          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-terracotta">{count} lần</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm leading-6 text-charcoal/70">
+                      Chưa có vấn đề nào lặp lại trong phản hồi của bạn. Đây là tín hiệu tích cực — hãy tiếp tục đánh giá để hệ thống hiểu rõ hơn.
+                    </p>
+                  )}
+                </SpotlightCard>
+              </div>
+            </section>
           </div>
         )}
       </div>
     </>
+  );
+}
+
+function PersonalizationStat({ label, value }: { label: string; value: string }) {
+  return (
+    <SpotlightCard
+      spotlightColor="rgba(209, 103, 75, 0.18)"
+      className="rounded-xl border border-terracotta/20 bg-terracotta/5 px-4 py-3"
+    >
+      <p className="text-xs font-medium text-charcoal/65">{label}</p>
+      <p className="mt-1 text-xl font-bold text-terracotta">{value}</p>
+    </SpotlightCard>
   );
 }
 

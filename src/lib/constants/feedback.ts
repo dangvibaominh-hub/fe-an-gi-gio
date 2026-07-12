@@ -15,4 +15,4 @@ export const FEEDBACK_ISSUE_OPTIONS: ReadonlyArray<{
 
 export const POST_COOKING_TOAST_KEY = "an-gi-gio-cooking-thank-you";
 export const POST_COOKING_TOAST_MESSAGE =
-  "Cảm ơn bạn! Lần sau mình sẽ gợi ý phù hợp hơn.";
+  "Bạn đã hoàn thành món ăn! Cảm ơn bạn đã đánh giá.";
