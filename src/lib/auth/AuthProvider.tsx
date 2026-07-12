@@ -40,8 +40,8 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isInitializing: boolean;
   isRecipeSaved: (recipeSlug: string) => boolean;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogleToken: (idToken: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  loginWithGoogleToken: (idToken: string) => Promise<User>;
   logout: () => Promise<void>;
   openAuthModal: () => void;
   refreshSavedRecipes: () => Promise<void>;
@@ -195,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const session = await loginRequest({ email, password });
       writeStoredAuthSession(session);
       await completeAuthSuccess();
+      return session.user;
     },
     [completeAuthSuccess],
   );
@@ -217,6 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const session = await loginWithGoogle({ idToken });
       writeStoredAuthSession(session);
       await completeAuthSuccess();
+      return session.user;
     },
     [completeAuthSuccess],
   );

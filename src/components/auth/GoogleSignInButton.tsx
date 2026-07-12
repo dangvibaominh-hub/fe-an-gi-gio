@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiRequestError } from "@/lib/api/errors";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import type { User } from "@/lib/types/auth";
 import {
   getGoogleClientId,
   initializeGoogleIdentity,
@@ -13,7 +14,7 @@ import {
 
 interface GoogleSignInButtonProps {
   disabled?: boolean;
-  onAuthenticated?: () => void;
+  onAuthenticated?: (user: User) => void;
   onError?: (message: string) => void;
 }
 
@@ -58,8 +59,8 @@ export function GoogleSignInButton({
       onCredential: (credential) => {
         finishAttempt();
         void loginWithGoogleToken(credential)
-          .then(() => {
-            onAuthenticatedRef.current?.();
+          .then((user) => {
+            onAuthenticatedRef.current?.(user);
           })
           .catch((error: unknown) => {
             onErrorRef.current?.(
