@@ -1,13 +1,11 @@
-const GEMINI_IMAGE_PATH = "/images/recipes/gemini-generated.png";
-const GEMINI_FALLBACK_IMAGE_PATH = "/images/recipes/placeholder.png";
+const LEGACY_GEMINI_IMAGE_MARKER = "/images/recipes/gemini-generated.png";
+const PLACEHOLDER_IMAGE_PATH = "/images/recipes/placeholder.avif";
 
 export function resolveRecipeImage(image: string) {
-  if (!image) {
-    return image;
-  }
-
-  if (image === GEMINI_IMAGE_PATH) {
-    return GEMINI_FALLBACK_IMAGE_PATH;
+  // The legacy Gemini value is a database marker, not a real generated image.
+  // Actual Gemini images are uploaded to Supabase and have their own URL.
+  if (image === LEGACY_GEMINI_IMAGE_MARKER || image.trim().length === 0) {
+    return PLACEHOLDER_IMAGE_PATH;
   }
 
   return image;
