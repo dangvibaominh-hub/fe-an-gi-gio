@@ -1,11 +1,14 @@
 import {
+  GENERATED_RECIPES_STORAGE_KEY,
   SEARCH_INGREDIENTS_PARAM,
   SEARCH_MATCHES_STORAGE_KEY,
   SEARCH_SESSION_STORAGE_KEY,
 } from "@/lib/constants/search";
 import type { RecommendationMatch } from "@/lib/types/recommendation";
+import type { RecipeDetail } from "@/lib/types/recipe";
 
 export type RecipeMatchMap = Record<string, RecommendationMatch>;
+type GeneratedRecipeMap = Record<string, RecipeDetail>;
 
 export function buildResultsHref(ingredients: string[]): string {
   const params = new URLSearchParams();
@@ -55,6 +58,7 @@ export function dedupeIngredients(ingredients: string[]): string[] {
 export function saveSearchSession(
   ingredients: string[],
   matches: RecipeMatchMap = {},
+  generatedRecipes: RecipeDetail[] = [],
 ): void {
   if (typeof window === "undefined") {
     return;
@@ -68,6 +72,45 @@ export function saveSearchSession(
     SEARCH_MATCHES_STORAGE_KEY,
     JSON.stringify(matches),
   );
+
+  if (generatedRecipes.length > 0) {
+    const nextRecipes = { ...readGeneratedRecipes() };
+
+    for (const recipe of generatedRecipes) {
+      nextRecipes[recipe.slug] = recipe;
+    }
+
+    sessionStorage.setItem(
+      GENERATED_RECIPES_STORAGE_KEY,
+      JSON.stringify(nextRecipes),
+    );
+  }
+}
+
+export function readGeneratedRecipe(slug: string): RecipeDetail | undefined {
+  return readGeneratedRecipes()[slug];
+}
+
+function readGeneratedRecipes(): GeneratedRecipeMap {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const storedValue = sessionStorage.getItem(GENERATED_RECIPES_STORAGE_KEY);
+
+    if (!storedValue) {
+      return {};
+    }
+
+    const parsedValue: unknown = JSON.parse(storedValue);
+
+    return typeof parsedValue === "object" && parsedValue !== null
+      ? (parsedValue as GeneratedRecipeMap)
+      : {};
+  } catch {
+    return {};
+  }
 }
 
 export function readSearchIngredients(): string[] {

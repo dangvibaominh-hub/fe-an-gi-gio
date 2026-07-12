@@ -64,6 +64,11 @@ export function IngredientPillInput({
     );
   }
 
+  function clearIngredients() {
+    setInputValue("");
+    onIngredientsChange([]);
+  }
+
   return (
     <div className="flex min-h-32 w-full flex-wrap content-start gap-3 rounded-3xl border border-terracotta/25 bg-white p-4 shadow-warm sm:p-5">
       <div className="flex min-w-0 flex-1 basis-full items-center gap-3">
@@ -99,6 +104,16 @@ export function IngredientPillInput({
           placeholder="Nhập nguyên liệu bạn đang có..."
           className="min-w-0 flex-1 bg-transparent text-base text-charcoal outline-none placeholder:text-charcoal/45 sm:text-lg"
         />
+
+        {ingredients.length > 0 || inputValue ? (
+          <button
+            type="button"
+            onClick={clearIngredients}
+            className="shrink-0 rounded-full px-3 py-2 text-sm font-semibold text-terracotta transition hover:bg-terracotta/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+          >
+            Xóa tất cả
+          </button>
+        ) : null}
       </div>
 
       <p className="basis-full text-xs text-charcoal/55 sm:text-sm">

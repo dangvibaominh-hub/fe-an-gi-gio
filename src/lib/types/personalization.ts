@@ -5,12 +5,7 @@ export interface PersonalizationSignals {
   preferTechniqueGuidance: number;
 }
 
-export interface FeedbackIssueCounts {
-  "cutting-meat-hard": number;
-  "missing-ingredients": number;
-  "oil-splatter": number;
-  "took-longer-than-expected": number;
-}
+export type FeedbackIssueCounts = Record<string, number>;
 
 export interface PersonalizationInsight {
   averageRating: number;

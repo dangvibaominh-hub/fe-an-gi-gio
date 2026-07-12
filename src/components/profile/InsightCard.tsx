@@ -4,7 +4,10 @@ export interface InsightCardProps {
 
 export function InsightCard({ message }: InsightCardProps) {
   return (
-    <article className="flex gap-4 rounded-2xl border border-terracotta/15 bg-white p-5 shadow-warm">
+    <SpotlightCard
+      spotlightColor="rgba(209, 103, 75, 0.16)"
+      className="flex items-center gap-4 rounded-2xl border border-terracotta/15 bg-white p-5 shadow-warm"
+    >
       <span
         aria-hidden="true"
         className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-terracotta/15 to-mustard/20 text-terracotta"
@@ -20,6 +23,7 @@ export function InsightCard({ message }: InsightCardProps) {
         </svg>
       </span>
       <p className="text-sm leading-6 text-charcoal sm:text-base">{message}</p>
-    </article>
+    </SpotlightCard>
   );
 }
+import { SpotlightCard } from "@/components/ui/SpotlightCard";

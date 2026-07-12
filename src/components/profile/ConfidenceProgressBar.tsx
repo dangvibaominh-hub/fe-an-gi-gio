@@ -11,7 +11,7 @@ export function ConfidenceProgressBar({
     <div className="w-full">
       <div className="mb-2 flex items-center justify-between gap-3">
         <p className="font-semibold text-charcoal">
-          Mức độ tự tin nấu ăn của bạn
+          Độ tin cậy của gợi ý
         </p>
         <span className="text-sm font-semibold text-charcoal/70">
           {percent}%
@@ -31,7 +31,11 @@ export function ConfidenceProgressBar({
         />
       </div>
       <p className="mt-2 text-sm text-charcoal/65">
-        Dựa trên {percent < 30 ? "ít" : "các"} phản hồi sau khi bạn nấu xong.
+        {percent < 30
+          ? "Cần thêm phản hồi để nhận diện sở thích của bạn."
+          : percent < 70
+            ? "Đã có một vài tín hiệu, nhưng gợi ý vẫn đang được hoàn thiện."
+            : "Gợi ý đã phản ánh khá rõ phản hồi nấu ăn của bạn."}
       </p>
     </div>
   );

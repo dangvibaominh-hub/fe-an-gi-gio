@@ -108,10 +108,6 @@ function FeedbackForm({ cookingSessionId, onSuccess }: FeedbackFormProps) {
         return currentIssues.filter((value) => value !== issue);
       }
 
-      if (currentIssues.length >= 4) {
-        return currentIssues;
-      }
-
       return [...currentIssues, issue];
     });
   }

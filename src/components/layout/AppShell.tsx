@@ -19,7 +19,7 @@ export function AppShell({ children }: AppShellProps) {
     return (
       <>
         {children}
-        <PostCookingToast />
+        <PostCookingToast key={pathname} />
       </>
     );
   }
@@ -28,7 +28,7 @@ export function AppShell({ children }: AppShellProps) {
     <>
       <Navbar />
       <main className="flex flex-1 flex-col pt-20">{children}</main>
-      <PostCookingToast />
+      <PostCookingToast key={pathname} />
       <PhuBepWidget />
     </>
   );

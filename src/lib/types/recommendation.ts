@@ -1,4 +1,8 @@
-import type { RecipeSummary } from "@/lib/types/recipe";
+import type {
+  RecipeIngredient,
+  RecipeStep,
+  RecipeSummary,
+} from "@/lib/types/recipe";
 import type { PaginationMeta } from "@/lib/types/api";
 
 export type RecommendationSource = "database" | "gemini" | "empty";
@@ -10,7 +14,10 @@ export interface RecommendationMatch {
 }
 
 export interface RecipeRecommendation extends RecipeSummary {
+  cookingTerms?: Record<string, string>;
+  ingredients?: RecipeIngredient[];
   match: RecommendationMatch;
+  steps?: RecipeStep[];
 }
 
 export interface RecommendationMeta extends PaginationMeta {

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { Toast } from "@/components/ui/Toast";
 import { POST_COOKING_TOAST_KEY } from "@/lib/constants/feedback";
 
+const POST_COOKING_TOAST_DURATION_MS = 7000;
+
 function readPostCookingToastMessage(): string | null {
   if (typeof window === "undefined") {
     return null;
@@ -28,7 +30,10 @@ export function PostCookingToast() {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => setMessage(null), 3500);
+    const timeoutId = window.setTimeout(
+      () => setMessage(null),
+      POST_COOKING_TOAST_DURATION_MS,
+    );
 
     return () => window.clearTimeout(timeoutId);
   }, [message]);
