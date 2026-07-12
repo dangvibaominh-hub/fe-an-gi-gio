@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { ResultsRecipeBrowser } from "@/components/recipe/ResultsRecipeBrowser";
 import { SearchContextBanner } from "@/components/recipe/SearchContextBanner";
+import { UnknownIngredientsFallback } from "@/components/recipe/UnknownIngredientsFallback";
 import { SearchSessionSync } from "@/components/home/SearchSessionSync";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ApiRequestError } from "@/lib/api/errors";
 import { recommendRecipes } from "@/lib/api/recommendations";
 import { listRecipes } from "@/lib/api/recipes";
 import { DEFAULT_RECIPE_LIST_LIMIT } from "@/lib/constants/recipe";
@@ -12,6 +14,8 @@ import {
   parseIngredientsFromSearchParams,
   type RecipeMatchMap,
 } from "@/lib/searchSession";
+import type { RecipeDetail } from "@/lib/types/recipe";
+import type { RecipeRecommendation } from "@/lib/types/recommendation";
 
 export const metadata: Metadata = {
   title: "Kết quả công thức",
@@ -31,16 +35,30 @@ export default async function RecipeResultsPage({
   const isSearchMode = searchIngredients.length > 0;
 
   if (isSearchMode) {
-    const { items: recommendations, meta } = await recommendRecipes({
-      ingredients: searchIngredients,
-      limit: DEFAULT_RECIPE_LIST_LIMIT,
-    });
+    let recommendations;
+
+    try {
+      recommendations = await recommendRecipes({
+        ingredients: searchIngredients,
+        limit: DEFAULT_RECIPE_LIST_LIMIT,
+      });
+    } catch (error) {
+      const unknownIngredients = getUnknownIngredients(error);
+
+      if (unknownIngredients !== null) {
+        return <UnknownIngredientsFallback ingredients={unknownIngredients} />;
+      }
+
+      throw error;
+    }
+
+    const { items, meta } = recommendations;
 
     const matches: RecipeMatchMap = Object.fromEntries(
-      recommendations.map((recipe) => [recipe.slug, recipe.match]),
+      items.map((recipe) => [recipe.slug, recipe.match]),
     );
 
-    const filterableRecipes = recommendations.map((recipe) => ({
+    const filterableRecipes = items.map((recipe) => ({
       slug: recipe.slug,
       difficulty: recipe.difficulty,
       cookTimeMinutes: recipe.cookTimeMinutes,
@@ -59,6 +77,11 @@ export default async function RecipeResultsPage({
         <SearchSessionSync
           ingredients={searchIngredients}
           matches={matches}
+          generatedRecipes={
+            meta.source === "gemini"
+              ? items.filter(isRecipeDetail)
+              : undefined
+          }
         />
         <ResultsRecipeBrowser
           recipes={filterableRecipes}
@@ -106,4 +129,30 @@ export default async function RecipeResultsPage({
       />
     </div>
   );
+}
+
+function isRecipeDetail(
+  recipe: RecipeRecommendation,
+): recipe is RecipeRecommendation & RecipeDetail {
+  return (
+    Array.isArray(recipe.ingredients) &&
+    Array.isArray(recipe.steps) &&
+    typeof recipe.cookingTerms === "object" &&
+    recipe.cookingTerms !== null
+  );
+}
+
+function getUnknownIngredients(error: unknown): string[] | null {
+  if (!(error instanceof ApiRequestError) || error.code !== "UNKNOWN_INGREDIENTS") {
+    return null;
+  }
+
+  const unknownIngredients = (error.details as {
+    unknownIngredients?: unknown;
+  } | undefined)?.unknownIngredients;
+
+  return Array.isArray(unknownIngredients) &&
+      unknownIngredients.every((ingredient) => typeof ingredient === "string")
+    ? unknownIngredients
+    : null;
 }
