@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChefHat,
   LoaderCircle,
@@ -588,7 +588,7 @@ function ChatMessageBubble({
             : "border border-terracotta/10 bg-white text-charcoal"
         } ${message.isPending ? "opacity-80" : ""}`}
       >
-        <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
+        <ChatMarkdown content={getDisplayContent(message.content)} />
 
         {message.isError ? (
           <p className="mt-2 text-xs text-terracotta">
@@ -627,6 +627,78 @@ function ChatMessageBubble({
       </div>
     </article>
   );
+}
+
+function getDisplayContent(content: string) {
+  const trimmed = content.trim();
+
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+    return content;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "content" in parsed &&
+      typeof parsed.content === "string"
+    ) {
+      return parsed.content;
+    }
+  } catch {
+    // Not a serialized assistant response; render it as ordinary text.
+  }
+
+  return content;
+}
+
+function ChatMarkdown({ content }: { content: string }) {
+  return (
+    <div className="space-y-1.5 text-sm leading-6">
+      {content.split("\n").map((line, index) => {
+        const numberedItem = line.match(/^\s*(\d+)\.\s+(.+)$/);
+        if (numberedItem) {
+          return (
+            <div key={index} className="flex gap-2">
+              <span className="font-semibold">{numberedItem[1]}.</span>
+              <span>{renderInlineMarkdown(numberedItem[2])}</span>
+            </div>
+          );
+        }
+
+        const bulletItem = line.match(/^\s*[-*]\s+(.+)$/);
+        if (bulletItem) {
+          return (
+            <div key={index} className="flex gap-2">
+              <span aria-hidden="true">•</span>
+              <span>{renderInlineMarkdown(bulletItem[1])}</span>
+            </div>
+          );
+        }
+
+        if (line.trim().length === 0) {
+          return <div key={index} className="h-1.5" />;
+        }
+
+        return <p key={index}>{renderInlineMarkdown(line)}</p>;
+      })}
+    </div>
+  );
+}
+
+function renderInlineMarkdown(text: string): ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return <em key={index}>{part.slice(1, -1)}</em>;
+    }
+
+    return part;
+  });
 }
 
 interface ChatRecipeCardProps {
